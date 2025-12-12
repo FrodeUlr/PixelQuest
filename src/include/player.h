@@ -7,7 +7,9 @@ typedef struct Player {
   Color color;
 } Player;
 
-void PlayerUpdatePosition(Player *player, bool TwoPlayer);
+void PlayerUpdatePosition(Player *player, bool TwoPlayer, const char **level,
+                          int screenWidth, int screenHeight);
 
 void PlayerCheckCollision(Player *player, int screenWidth, int screenHeight);
 void TwoPlayerCollision(Player *player1, Player *player2);
+bool is_blocked(char tile);

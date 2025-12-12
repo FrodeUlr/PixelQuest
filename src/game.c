@@ -1,4 +1,5 @@
 #include "include/game.h"
+#include "include/levels.h"
 #include "include/player.h"
 #include "include/raylib.h"
 
@@ -19,18 +20,19 @@ void start_game(Config *config) {
   player.color = BLUE;
 
   Player player2;
-  player2.position = (Vector2){100.0f, 100.0f};
+  player2.position = (Vector2){140.0f, 140.0f};
   player2.speed = 200.0f;
   player2.radius = 15.0f;
   player2.color = GREEN;
 
   SetTargetFPS(config->targetFPS);
+  const char **level = level_one();
 
   while (!WindowShouldClose()) {
 
     // Player movement
-    PlayerUpdatePosition(&player, false);
-    PlayerUpdatePosition(&player2, true);
+    PlayerUpdatePosition(&player, false, level, screenWidth, screenHeight);
+    PlayerUpdatePosition(&player2, true, level, screenWidth, screenHeight);
 
     // Player boundary checking
     TwoPlayerCollision(&player, &player2);
@@ -42,6 +44,7 @@ void start_game(Config *config) {
     const char *screenInfo =
         TextFormat("Screen: %dx%d", screenWidth, screenHeight);
     ClearBackground(RED);
+    render_level(level, 20, 10, screenWidth, screenHeight);
     DrawCircleV(player.position, player.radius, player.color);
     DrawCircleV(player2.position, player2.radius, player2.color);
     DrawText(fpsText, 0, 0, 20, WHITE);
