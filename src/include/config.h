@@ -7,5 +7,5 @@ typedef struct Config {
   bool fullscreen;
 } Config;
 
-void LoadConfig(Config *config, const char *filename);
-void SetDefaultConfig(Config *config);
+void load(Config *config, const char *filename);
+void set_default(Config *config);

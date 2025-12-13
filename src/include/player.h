@@ -7,9 +7,12 @@ typedef struct Player {
   Color color;
 } Player;
 
-void PlayerUpdatePosition(Player *player, bool TwoPlayer, const char **level,
-                          int screenWidth, int screenHeight);
+void update_position(Player *player, bool TwoPlayer, const char **level,
+                     int screenWidth, int screenHeight);
 
-void PlayerCheckCollision(Player *player, int screenWidth, int screenHeight);
-void TwoPlayerCollision(Player *player1, Player *player2);
+void check_collision(Player *player, int screenWidth, int screenHeight);
+void two_player_collision(Player *player1, Player *player2, const char **level,
+                          int screenWidth, int screenHeight);
 bool is_blocked(char tile);
+bool collides_with_level(float x, float y, float radius, const char **level,
+                         int screenWidth, int screenHeight);

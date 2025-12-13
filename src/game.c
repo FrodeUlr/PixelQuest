@@ -31,13 +31,13 @@ void start_game(Config *config) {
   while (!WindowShouldClose()) {
 
     // Player movement
-    PlayerUpdatePosition(&player, false, level, screenWidth, screenHeight);
-    PlayerUpdatePosition(&player2, true, level, screenWidth, screenHeight);
+    update_position(&player, false, level, screenWidth, screenHeight);
+    update_position(&player2, true, level, screenWidth, screenHeight);
 
     // Player boundary checking
-    TwoPlayerCollision(&player, &player2);
-    PlayerCheckCollision(&player, screenWidth, screenHeight);
-    PlayerCheckCollision(&player2, screenWidth, screenHeight);
+    two_player_collision(&player, &player2, level, screenWidth, screenHeight);
+    check_collision(&player, screenWidth, screenHeight);
+    check_collision(&player2, screenWidth, screenHeight);
 
     BeginDrawing();
     const char *fpsText = TextFormat("FPS: %d", GetFPS());

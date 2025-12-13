@@ -6,7 +6,7 @@
 #include <string.h>
 #include <unistd.h>
 
-void GetConfigPath(const char *filename, char *buffer, size_t buffer_size) {
+void get(const char *filename, char *buffer, size_t buffer_size) {
   char exe_path[PATH_MAX];
   ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
   if (len == -1) {
@@ -25,11 +25,11 @@ void GetConfigPath(const char *filename, char *buffer, size_t buffer_size) {
   snprintf(buffer, buffer_size, "%s/%s", dir, filename);
 }
 
-void LoadConfig(Config *config, const char *filename) {
+void load(Config *config, const char *filename) {
   char configPath[PATH_MAX];
-  GetConfigPath(filename, configPath, PATH_MAX);
+  get(filename, configPath, PATH_MAX);
   printf("Loading config from: %s\n", configPath);
-  SetDefaultConfig(config);
+  set_default(config);
   FILE *file = fopen(configPath, "r");
   if (!file) {
     file = fopen(configPath, "w");
@@ -63,7 +63,7 @@ void LoadConfig(Config *config, const char *filename) {
   }
 }
 
-void SetDefaultConfig(Config *config) {
+void set_default(Config *config) {
   config->screenWidth = 800;
   config->screenHeight = 600;
   config->targetFPS = 60;

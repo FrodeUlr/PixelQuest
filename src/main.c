@@ -2,7 +2,7 @@
 
 int main(void) {
   Config config;
-  LoadConfig(&config, "config.cfg");
+  load(&config, "config.cfg");
   start_game(&config);
   return 0;
 }
