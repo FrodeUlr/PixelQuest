@@ -3,6 +3,8 @@
 typedef struct Player {
   Vector2 position;
   float speed;
+  float acceleration;
+  float max_speed;
   float radius;
   Color color;
 } Player;

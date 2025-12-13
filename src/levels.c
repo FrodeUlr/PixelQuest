@@ -2,30 +2,39 @@
 #include "include/raylib.h"
 #include <string.h>
 
-const char **level_one() {
+Level level_one() {
+  Level level;
   static const char *level_data[] = {
+      "####################", "#..............@...#", "#..####............#",
+      "#..#..#............#", "#..#..#....####....#", "#..####....#..#....#",
+      "#..........#..#....#", "#..........####....#", "#..................#",
       "####################",
-      "#..............@...#",
-      "#..####............#",
-      "#..#..#............#",
-      "#..#..#....####....#",
-      "#..####....#..#....#",
-      "#..........#..#....#",
-      "#..........####....#",
-      "#..................#",
-      "####################",
-      NULL // <-- Add this to mark the end!
   };
-  return level_data;
+  level.data = level_data;
+  level.width = strlen(level_data[0]);
+  level.height = sizeof(level_data) / sizeof(level_data[0]);
+  return level;
 }
 
-void render_level(const char **level_data, int level_width, int level_height,
-                  int screen_width, int screen_height) {
-  int tile_width = screen_width / level_width;
-  int tile_height = screen_height / level_height;
-  for (int y = 0; y < level_height; y++) {
-    for (int x = 0; x < level_width; x++) {
-      char tile = level_data[y][x];
+Level level_two() {
+  Level level;
+  static const char *level_data[] = {
+      "####################", "#...#..............#", "#...#..............#",
+      "#...####@@.........#", "#........@.....#...#", "#........@.....#...#",
+      "#........@.....#...#", "#..............#...#", "#..............#...#",
+      "####################",
+  };
+  level.data = level_data;
+  level.width = strlen(level_data[0]);
+  level.height = sizeof(level_data) / sizeof(level_data[0]);
+  return level;
+}
+void render_level(Level level, int screen_width, int screen_height) {
+  int tile_width = screen_width / level.width;
+  int tile_height = screen_height / level.height;
+  for (int y = 0; y < level.height; y++) {
+    for (int x = 0; x < level.width; x++) {
+      char tile = level.data[y][x];
       Color color;
       switch (tile) {
       case '#':

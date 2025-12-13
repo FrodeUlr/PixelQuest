@@ -2,6 +2,20 @@
 #include "include/raylib.h"
 #include <math.h>
 
+bool is_right_key(bool TwoPlayer) {
+  return (TwoPlayer && IsKeyDown(KEY_D)) ||
+         (!TwoPlayer && IsKeyDown(KEY_RIGHT));
+}
+bool is_left_key(bool TwoPlayer) {
+  return (TwoPlayer && IsKeyDown(KEY_A)) || (!TwoPlayer && IsKeyDown(KEY_LEFT));
+}
+bool is_up_key(bool TwoPlayer) {
+  return (TwoPlayer && IsKeyDown(KEY_W)) || (!TwoPlayer && IsKeyDown(KEY_UP));
+}
+bool is_down_key(bool TwoPlayer) {
+  return (TwoPlayer && IsKeyDown(KEY_S)) || (!TwoPlayer && IsKeyDown(KEY_DOWN));
+}
+
 void update_position(Player *player, bool TwoPlayer, const char **level,
                      int screenWidth, int screenHeight) {
   int tile_rows = 10;
@@ -13,14 +27,25 @@ void update_position(Player *player, bool TwoPlayer, const char **level,
   float new_y = player->position.y;
   float radius = player->radius;
 
-  if ((IsKeyDown(KEY_RIGHT) && !TwoPlayer) || (IsKeyDown(KEY_D) && TwoPlayer))
+  if (is_right_key(TwoPlayer))
     new_x += player->speed * GetFrameTime();
-  if ((IsKeyDown(KEY_LEFT) && !TwoPlayer) || (IsKeyDown(KEY_A) && TwoPlayer))
+  if (is_left_key(TwoPlayer))
     new_x -= player->speed * GetFrameTime();
-  if ((IsKeyDown(KEY_UP) && !TwoPlayer) || (IsKeyDown(KEY_W) && TwoPlayer))
+  if (is_up_key(TwoPlayer))
     new_y -= player->speed * GetFrameTime();
-  if ((IsKeyDown(KEY_DOWN) && !TwoPlayer) || (IsKeyDown(KEY_S) && TwoPlayer))
+  if (is_down_key(TwoPlayer))
     new_y += player->speed * GetFrameTime();
+
+  if (is_right_key(TwoPlayer) || is_left_key(TwoPlayer) ||
+      is_up_key(TwoPlayer) || is_down_key(TwoPlayer)) {
+    if (player->speed < player->max_speed) {
+      player->acceleration += 0.1f;
+      player->speed += player->acceleration;
+    }
+  } else {
+    player->acceleration = 0.0f;
+    player->speed = 10.0f;
+  }
 
   int left_tile = (int)((new_x - radius) / tile_w);
   int right_tile = (int)((new_x + radius) / tile_w);
@@ -64,7 +89,7 @@ void two_player_collision(Player *player1, Player *player2, const char **level,
   float dx = player1->position.x - player2->position.x;
   float dy = player1->position.y - player2->position.y;
   float distance = sqrtf(dx * dx + dy * dy);
-  float minDistance = player1->radius + player2->radius;
+  float minDistance = player1->radius + player2->radius + 5;
 
   if (distance < minDistance) {
     float overlap = 0.5f * (minDistance - distance);
