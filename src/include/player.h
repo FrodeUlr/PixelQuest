@@ -1,3 +1,4 @@
+#include "levels.h"
 #include "raylib.h"
 
 typedef struct Player {
@@ -9,12 +10,12 @@ typedef struct Player {
   Color color;
 } Player;
 
-void update_position(Player *player, bool TwoPlayer, const char **level,
+void update_position(Player *player, bool TwoPlayer, Level level,
                      int screenWidth, int screenHeight);
 
 void check_collision(Player *player, int screenWidth, int screenHeight);
-void two_player_collision(Player *player1, Player *player2, const char **level,
+void two_player_collision(Player *player1, Player *player2, Level level,
                           int screenWidth, int screenHeight);
 bool is_blocked(char tile);
-bool collides_with_level(float x, float y, float radius, const char **level,
+bool collides_with_level(float x, float y, float radius, Level level,
                          int screenWidth, int screenHeight);

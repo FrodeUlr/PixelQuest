@@ -16,10 +16,10 @@ bool is_down_key(bool TwoPlayer) {
   return (TwoPlayer && IsKeyDown(KEY_S)) || (!TwoPlayer && IsKeyDown(KEY_DOWN));
 }
 
-void update_position(Player *player, bool TwoPlayer, const char **level,
+void update_position(Player *player, bool TwoPlayer, Level level,
                      int screenWidth, int screenHeight) {
-  int tile_rows = 10;
-  int tile_cols = 20;
+  int tile_rows = level.height;
+  int tile_cols = level.width;
   int tile_w = screenWidth / tile_cols;
   int tile_h = screenHeight / tile_rows;
 
@@ -52,23 +52,22 @@ void update_position(Player *player, bool TwoPlayer, const char **level,
   int top_tile = (int)((player->position.y - radius) / tile_h);
   int bottom_tile = (int)((player->position.y + radius) / tile_h);
 
-  if (!is_blocked(level[top_tile][left_tile]) &&
-      !is_blocked(level[bottom_tile][left_tile]) &&
-      !is_blocked(level[top_tile][right_tile]) &&
-      !is_blocked(level[bottom_tile][right_tile])) {
+  if (!is_blocked(level.data[top_tile][left_tile]) &&
+      !is_blocked(level.data[bottom_tile][left_tile]) &&
+      !is_blocked(level.data[top_tile][right_tile]) &&
+      !is_blocked(level.data[bottom_tile][right_tile])) {
     player->position.x = new_x;
   }
 
-  // Then try moving in Y direction
   left_tile = (int)((player->position.x - radius) / tile_w);
   right_tile = (int)((player->position.x + radius) / tile_w);
   top_tile = (int)((new_y - radius) / tile_h);
   bottom_tile = (int)((new_y + radius) / tile_h);
 
-  if (!is_blocked(level[top_tile][left_tile]) &&
-      !is_blocked(level[bottom_tile][left_tile]) &&
-      !is_blocked(level[top_tile][right_tile]) &&
-      !is_blocked(level[bottom_tile][right_tile])) {
+  if (!is_blocked(level.data[top_tile][left_tile]) &&
+      !is_blocked(level.data[bottom_tile][left_tile]) &&
+      !is_blocked(level.data[top_tile][right_tile]) &&
+      !is_blocked(level.data[bottom_tile][right_tile])) {
     player->position.y = new_y;
   }
 }
@@ -84,7 +83,7 @@ void check_collision(Player *player, int screenWidth, int screenHeight) {
     player->position.y = screenHeight - player->radius;
 }
 
-void two_player_collision(Player *player1, Player *player2, const char **level,
+void two_player_collision(Player *player1, Player *player2, Level level,
                           int screenWidth, int screenHeight) {
   float dx = player1->position.x - player2->position.x;
   float dy = player1->position.y - player2->position.y;
@@ -96,7 +95,6 @@ void two_player_collision(Player *player1, Player *player2, const char **level,
     float nx = dx / distance;
     float ny = dy / distance;
 
-    // Save old positions
     float old1x = player1->position.x, old1y = player1->position.y;
     float old2x = player2->position.x, old2y = player2->position.y;
 
@@ -105,7 +103,6 @@ void two_player_collision(Player *player1, Player *player2, const char **level,
     player2->position.x -= nx * overlap;
     player2->position.y -= ny * overlap;
 
-    // Prevent moving into blocked tiles
     if (collides_with_level(player1->position.x, player1->position.y,
                             player1->radius, level, screenWidth, screenHeight))
       player1->position.x = old1x, player1->position.y = old1y;
@@ -117,10 +114,10 @@ void two_player_collision(Player *player1, Player *player2, const char **level,
 
 bool is_blocked(char c) { return c == '#' || c == '@'; }
 
-bool collides_with_level(float x, float y, float radius, const char **level,
+bool collides_with_level(float x, float y, float radius, Level level,
                          int screenWidth, int screenHeight) {
-  int tile_rows = 10;
-  int tile_cols = 20;
+  int tile_rows = level.height;
+  int tile_cols = level.width;
   int tile_w = screenWidth / tile_cols;
   int tile_h = screenHeight / tile_rows;
 
@@ -129,7 +126,6 @@ bool collides_with_level(float x, float y, float radius, const char **level,
   int top_tile = (int)((y - radius) / tile_h);
   int bottom_tile = (int)((y + radius) / tile_h);
 
-  // Clamp indices to level bounds
   if (left_tile < 0)
     left_tile = 0;
   if (right_tile >= tile_cols)
@@ -141,7 +137,7 @@ bool collides_with_level(float x, float y, float radius, const char **level,
 
   for (int i = top_tile; i <= bottom_tile; i++) {
     for (int j = left_tile; j <= right_tile; j++) {
-      if (is_blocked(level[i][j]))
+      if (is_blocked(level.data[i][j]))
         return true;
     }
   }

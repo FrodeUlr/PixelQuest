@@ -2,33 +2,41 @@
 #include "include/raylib.h"
 #include <string.h>
 
-Level level_one() {
+Level get_level(int number) {
   Level level;
-  static const char *level_data[] = {
-      "####################", "#..............@...#", "#..####............#",
-      "#..#..#............#", "#..#..#....####....#", "#..####....#..#....#",
-      "#..........#..#....#", "#..........####....#", "#..................#",
-      "####################",
-  };
+  const char **level_data = NULL;
+  int height = 0;
+  switch (number) {
+  case 1: {
+    static const char *data[] = {
+        "####################", "#..............@...#", "#..####............#",
+        "#..#..#............#", "#..#..#....####....#", "#..####....#..#....#",
+        "#..........#..#....#", "#..........####....#", "#..................#",
+        "####################",
+    };
+    height = sizeof(data) / sizeof(data[0]);
+    level_data = data;
+    break;
+  }
+  case 2: {
+    static const char *data[] = {
+        "#######################", "#...#.................#",
+        "#...#..........###....#", "#...####@@.........####",
+        "#........@.....#...####", "#........@.....#...####",
+        "#..###......@.....#...#", "#.................#...#",
+        "#..###................#", "#######################",
+    };
+    height = sizeof(data) / sizeof(data[0]);
+    level_data = data;
+    break;
+  }
+  }
   level.data = level_data;
-  level.width = strlen(level_data[0]);
-  level.height = sizeof(level_data) / sizeof(level_data[0]);
+  level.width = level_data ? strlen(level_data[0]) : 0;
+  level.height = height;
   return level;
 }
 
-Level level_two() {
-  Level level;
-  static const char *level_data[] = {
-      "####################", "#...#..............#", "#...#..............#",
-      "#...####@@.........#", "#........@.....#...#", "#........@.....#...#",
-      "#........@.....#...#", "#..............#...#", "#..............#...#",
-      "####################",
-  };
-  level.data = level_data;
-  level.width = strlen(level_data[0]);
-  level.height = sizeof(level_data) / sizeof(level_data[0]);
-  return level;
-}
 void render_level(Level level, int screen_width, int screen_height) {
   int tile_width = screen_width / level.width;
   int tile_height = screen_height / level.height;

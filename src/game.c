@@ -1,6 +1,5 @@
 #include "include/game.h"
 #include "include/constants.h"
-#include "include/levels.h"
 #include "include/player.h"
 #include "include/raylib.h"
 
@@ -31,17 +30,16 @@ void start_game(Config *config) {
   player2.color = VIOLET;
 
   SetTargetFPS(config->targetFPS);
-  const Level level = level_two();
+  const Level level = get_level(1);
 
   while (!WindowShouldClose()) {
 
     // Player movement
-    update_position(&player, false, level.data, screenWidth, screenHeight);
-    update_position(&player2, true, level.data, screenWidth, screenHeight);
+    update_position(&player, false, level, screenWidth, screenHeight);
+    update_position(&player2, true, level, screenWidth, screenHeight);
 
     // Player boundary checking
-    two_player_collision(&player, &player2, level.data, screenWidth,
-                         screenHeight);
+    two_player_collision(&player, &player2, level, screenWidth, screenHeight);
     check_collision(&player, screenWidth, screenHeight);
     check_collision(&player2, screenWidth, screenHeight);
 
