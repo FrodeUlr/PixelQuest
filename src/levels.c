@@ -1,5 +1,5 @@
-#include "include/levels.h"
-#include "include/raylib.h"
+#include "../include/levels.h"
+#include "../include/raylib.h"
 #include <string.h>
 
 Level get_level(int number) {

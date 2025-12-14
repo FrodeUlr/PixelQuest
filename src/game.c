@@ -1,7 +1,7 @@
-#include "include/game.h"
-#include "include/constants.h"
-#include "include/player.h"
-#include "include/raylib.h"
+#include "../include/game.h"
+#include "../include/constants.h"
+#include "../include/player.h"
+#include "../include/raylib.h"
 
 void start_game(Config *config) {
   const char *title = "Test Game";
@@ -13,52 +13,43 @@ void start_game(Config *config) {
   }
   const int screenWidth = GetScreenWidth();
   const int screenHeight = GetScreenHeight();
-  Player player;
-  player.position = (Vector2){screenWidth * 0.9f, screenHeight * 0.8f};
-  player.speed = START_SPEED;
-  player.acceleration = PLAYER_ACCELERATION;
-  player.max_speed = MAX_SPEED;
-  player.radius = PLAYER_RADIUS;
-  player.color = PINK;
-
-  Player player2;
-  player2.position = (Vector2){screenWidth * 0.1f, screenHeight * 0.2f};
-  player2.speed = START_SPEED;
-  player2.acceleration = PLAYER_ACCELERATION;
-  player2.max_speed = MAX_SPEED;
-  player2.radius = PLAYER_RADIUS;
-  player2.color = VIOLET;
-
+  Player player_one =
+      generate_player("Player1", screenWidth * 0.9f, screenHeight * 0.8f, PINK);
+  Player player_two = generate_player("Player2", screenWidth * 0.1f,
+                                      screenHeight * 0.2f, VIOLET);
   SetTargetFPS(config->targetFPS);
   const Level level = get_level(1);
 
   while (!WindowShouldClose()) {
 
     // Player movement
-    update_position(&player, false, level, screenWidth, screenHeight);
-    update_position(&player2, true, level, screenWidth, screenHeight);
+    update_position(&player_one, false, level, screenWidth, screenHeight);
+    update_position(&player_two, true, level, screenWidth, screenHeight);
 
     // Player boundary checking
-    two_player_collision(&player, &player2, level, screenWidth, screenHeight);
-    check_collision(&player, screenWidth, screenHeight);
-    check_collision(&player2, screenWidth, screenHeight);
+    two_player_collision(&player_one, &player_two, level, screenWidth,
+                         screenHeight);
+    check_collision(&player_one, screenWidth, screenHeight);
+    check_collision(&player_two, screenWidth, screenHeight);
 
     BeginDrawing();
     const char *fpsText = TextFormat("FPS: %d", GetFPS());
     const char *screenInfo =
         TextFormat("Screen: %dx%d", screenWidth, screenHeight);
-    const char *playerPosText = TextFormat(
-        "Player1 Pos: (%.2f, %.2f)", player.position.x, player.position.y);
-    const char *player2PosText = TextFormat(
-        "Player2 Pos: (%.2f, %.2f)", player2.position.x, player2.position.y);
+    const char *playerPosText =
+        TextFormat("Player1 Pos: (%.2f, %.2f)", player_one.position.x,
+                   player_one.position.y);
+    const char *player_two_pos_text =
+        TextFormat("Player2 Pos: (%.2f, %.2f)", player_two.position.x,
+                   player_two.position.y);
     ClearBackground(RED);
     render_level(level, screenWidth, screenHeight);
-    DrawCircleV(player.position, player.radius, player.color);
-    DrawCircleV(player2.position, player2.radius, player2.color);
+    DrawCircleV(player_one.position, player_one.radius, player_one.color);
+    DrawCircleV(player_two.position, player_two.radius, player_two.color);
     DrawText(fpsText, 0, 0, 20, WHITE);
     DrawText(screenInfo, 0, 20, 20, WHITE);
     DrawText(playerPosText, 0, 40, 20, WHITE);
-    DrawText(player2PosText, 0, 60, 20, WHITE);
+    DrawText(player_two_pos_text, 0, 60, 20, WHITE);
     EndDrawing();
   }
   CloseWindow();

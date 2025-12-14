@@ -1,4 +1,4 @@
-#include "include/config.h"
+#include "../include/config.h"
 #include <libgen.h>
 #include <linux/limits.h>
 #include <stdio.h>

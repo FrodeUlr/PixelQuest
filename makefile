@@ -6,6 +6,6 @@ all: build run
 
 build:
 	@mkdir -p bin
-	@cc -o ./bin/raylibtest -I./src/include src/*.c -L./src/lib -l:libraylib.a -lm
+	@cc -o ./bin/raylibtest -I./include src/*.c -L./lib -l:libraylib.a -lm
 run:
 	@./bin/raylibtest

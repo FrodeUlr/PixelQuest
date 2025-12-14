@@ -1,3 +1,6 @@
+#ifndef LEVELS_H
+#define LEVELS_H
+
 typedef struct Level {
   int width;
   int height;
@@ -6,3 +9,5 @@ typedef struct Level {
 
 void render_level(Level level, int screen_width, int screen_height);
 Level get_level(int number);
+
+#endif

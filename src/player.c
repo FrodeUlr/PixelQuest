@@ -1,6 +1,18 @@
-#include "include/player.h"
-#include "include/raylib.h"
+#include "../include/player.h"
+#include "../include/raylib.h"
 #include <math.h>
+
+Player generate_player(char *name, float x, float y, Color color) {
+  Player player;
+  player.position = (Vector2){x, y};
+  player.speed = 10.0f;
+  player.acceleration = 0.0f;
+  player.max_speed = 200.0f;
+  player.radius = 15.0f;
+  player.color = color;
+  player.mass = 1.0f;
+  return player;
+}
 
 bool is_right_key(bool TwoPlayer) {
   return (TwoPlayer && IsKeyDown(KEY_D)) ||
