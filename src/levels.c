@@ -2,17 +2,46 @@
 #include "../include/raylib.h"
 #include <string.h>
 
+void set_offset(Level *level) {
+  int screen_width = GetScreenWidth();
+  int screen_height = GetScreenHeight();
+  int tile_w = screen_width / level->columns;
+  int tile_h = screen_height / level->rows;
+  level->tile_size = tile_w < tile_h ? tile_w : tile_h;
+
+  int level_pixel_width = level->tile_size * level->columns;
+  int level_pixel_height = level->tile_size * level->rows;
+  level->offset_x = (screen_width - level_pixel_width) / 2;
+  level->offset_y = (screen_height - level_pixel_height) / 2;
+}
+
 Level get_level(int number) {
   Level level;
   const char **level_data = NULL;
+  level.target_texture = SetTextureDef(
+      "Target_Tile", 0, 16, 0, 16, "../sprites/Outdoor decoration/Chest.png");
+  level.house_texture =
+      SetTextureDef("House_Tile", 0, 96, 0, 128,
+                    "../sprites/Outdoor decoration/House_1_Wood_Base_Blue.png");
   int height = 0;
   switch (number) {
   case 1: {
     static const char *data[] = {
-        "####################", "#..............@...#", "#..####............#",
-        "#..#..#............#", "#..#..#..O.####....#", "#..####....#..#....#",
-        "#..........#..#....#", "#..........####....#", "#..................#",
-        "####################",
+        "##########################################",
+        "#........................................#",
+        "#........................................#",
+        "#........................................#",
+        "#.................................2......#",
+        "#........................................#",
+        "#..1.....................................#",
+        "#...................O....................#",
+        "#........................................#",
+        "#........................................#",
+        "#........................................#",
+        "#........................................#",
+        "#........................................#",
+        "#........................................#",
+        "##########################################",
     };
     height = sizeof(data) / sizeof(data[0]);
     level.data = data;
@@ -24,46 +53,55 @@ Level get_level(int number) {
   }
   case 2: {
     static const char *data[] = {
-        "#######################", "#...#.................#",
-        "#...#..........###....#", "#...####@@.........####",
-        "#........@.O...#...####", "#........@.....#...####",
-        "#..###......@.....#...#", "#.................#...#",
-        "#..###................#", "#######################",
+        "##########################################",
+        "#........................................#",
+        "#........................................#",
+        "#..................................2.....#",
+        "#........................................#",
+        "#........................................#",
+        "#........................................#",
+        "#........................................#",
+        "#...................O....................#",
+        "#........................................#",
+        "#........................................#",
+        "#.....1..................................#",
+        "#........................................#",
+        "#........................................#",
+        "##########################################",
     };
     height = sizeof(data) / sizeof(data[0]);
     level.data = data;
     level.wall_texture = SetTextureDef("Stone_Tile", 0, 48, 0, 48,
                                        "../sprites/Tiles/Cliff_Tile.png");
     level.ground_texture = SetTextureDef("Ground_Tile", 0, 48, 0, 48,
-                                         "../sprites/Tiles/Grass_Middle.png");
+                                         "../sprites/Tiles/Path_Middle.png");
     break;
   }
   }
   level.level = number;
   level.completed = false;
-  level.width = level.data ? strlen(level.data[0]) : 0;
-  level.height = height;
+  level.columns = level.data ? strlen(level.data[0]) : 0;
+  level.rows = height;
+  set_offset(&level);
   return level;
 }
 
-void DrawTextureForGame(TextureDef tdef, int tile_width, int tile_height,
-                        int x_dest, int y_dest) {
-  float scale_factor_x = (float)tile_width / tdef.end_x;
-  float scale_factor_y = (float)tile_height / tdef.end_y;
+void DrawTextureForGame(Level *level, TextureDef tdef, int x_dest, int y_dest,
+                        float custom_scale) {
+  float scale = level->tile_size / (float)tdef.end_x * custom_scale;
   Rectangle source = {tdef.start_x, tdef.start_y, tdef.end_x, tdef.end_y};
-  Rectangle dest = {x_dest * tile_width, y_dest * tile_height,
-                    tdef.end_x * scale_factor_x, tdef.end_y * scale_factor_y};
+  Rectangle dest = {x_dest * level->tile_size + level->offset_x,
+                    y_dest * level->tile_size + level->offset_y,
+                    tdef.end_x * scale, tdef.end_y * scale};
   Vector2 origin = {0, 0}; // Top-left corner
   float rotation = 0.0f;
   DrawTexturePro(tdef.texture, source, dest, origin, rotation, WHITE);
 }
 
 void render_level(Level level, int screen_width, int screen_height) {
-  int tile_width = screen_width / level.width;
-  int tile_height = screen_height / level.height;
   TILE_TYPE tile_type;
-  for (int y = 0; y < level.height; y++) {
-    for (int x = 0; x < level.width; x++) {
+  for (int y = 0; y < level.rows; y++) {
+    for (int x = 0; x < level.columns; x++) {
       char tile = level.data[y][x];
       Color color;
       switch (tile) {
@@ -80,8 +118,17 @@ void render_level(Level level, int screen_width, int screen_height) {
         tile_type = WATER;
         break;
       case 'O':
-        color = RED;
+        color = GREEN;
         tile_type = TARGET;
+        break;
+      case 'H':
+        color = YELLOW;
+        tile_type = HOUSE;
+        break;
+      case '1':
+      case '2':
+        color = RED;
+        tile_type = PLAYER;
         break;
       default:
         color = BLACK;
@@ -89,17 +136,16 @@ void render_level(Level level, int screen_width, int screen_height) {
         break;
       }
       if (tile_type == TARGET) {
-        DrawCircle(
-            x * tile_width + tile_width / 2, y * tile_height + tile_height / 2,
-            (float)(tile_width < tile_height ? tile_width : tile_height) / 4,
-            color);
+        DrawTextureForGame(&level, level.ground_texture, x, y, 1);
+        DrawTextureForGame(&level, level.target_texture, x, y, 1);
       } else if (tile_type == WALL) {
-        DrawTextureForGame(level.wall_texture, tile_width, tile_height, x, y);
+        DrawTextureForGame(&level, level.wall_texture, x, y, 1);
       } else if (tile_type == GROUND) {
-        DrawTextureForGame(level.ground_texture, tile_width, tile_height, x, y);
+        DrawTextureForGame(&level, level.ground_texture, x, y, 1);
+      } else if (tile_type == PLAYER) {
+        DrawTextureForGame(&level, level.ground_texture, x, y, 1);
       } else {
-        DrawRectangle(x * tile_width, y * tile_height, tile_width, tile_height,
-                      color);
+        DrawTextureForGame(&level, level.ground_texture, x, y, 1);
       }
     }
   }

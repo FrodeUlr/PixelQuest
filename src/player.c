@@ -29,13 +29,7 @@ bool is_down_key(bool TwoPlayer) {
   return (TwoPlayer && IsKeyDown(KEY_S)) || (!TwoPlayer && IsKeyDown(KEY_DOWN));
 }
 
-void update_position(Player *player, bool TwoPlayer, Level level,
-                     int screenWidth, int screenHeight) {
-  int tile_rows = level.height;
-  int tile_cols = level.width;
-  int tile_w = screenWidth / tile_cols;
-  int tile_h = screenHeight / tile_rows;
-
+void update_position(Player *player, bool TwoPlayer, Level *level) {
   float new_x = player->position.x;
   float new_y = player->position.y;
   float radius = player->radius;
@@ -60,27 +54,59 @@ void update_position(Player *player, bool TwoPlayer, Level level,
     player->speed = 10.0f;
   }
 
-  int left_tile = (int)((new_x - radius) / tile_w);
-  int right_tile = (int)((new_x + radius) / tile_w);
-  int top_tile = (int)((player->position.y - radius) / tile_h);
-  int bottom_tile = (int)((player->position.y + radius) / tile_h);
+  // Convert position to tile coordinates, accounting for scaling and offset
+  int left_tile = (int)((new_x - radius - level->offset_x) / level->tile_size);
+  int right_tile = (int)((new_x + radius - level->offset_x) / level->tile_size);
+  int top_tile =
+      (int)((player->position.y - radius - level->offset_y) / level->tile_size);
+  int bottom_tile =
+      (int)((player->position.y + radius - level->offset_y) / level->tile_size);
 
-  if (!is_blocked(level.data[top_tile][left_tile]) &&
-      !is_blocked(level.data[bottom_tile][left_tile]) &&
-      !is_blocked(level.data[top_tile][right_tile]) &&
-      !is_blocked(level.data[bottom_tile][right_tile])) {
+  // Clamp tile indices
+  left_tile = left_tile < 0 ? 0
+                            : (left_tile >= level->columns ? level->columns - 1
+                                                           : left_tile);
+  right_tile =
+      right_tile < 0
+          ? 0
+          : (right_tile >= level->columns ? level->columns - 1 : right_tile);
+  top_tile =
+      top_tile < 0 ? 0 : (top_tile >= level->rows ? level->rows - 1 : top_tile);
+  bottom_tile = bottom_tile < 0 ? 0
+                                : (bottom_tile >= level->rows ? level->rows - 1
+                                                              : bottom_tile);
+
+  if (!is_blocked(level->data[top_tile][left_tile]) &&
+      !is_blocked(level->data[bottom_tile][left_tile]) &&
+      !is_blocked(level->data[top_tile][right_tile]) &&
+      !is_blocked(level->data[bottom_tile][right_tile])) {
     player->position.x = new_x;
   }
 
-  left_tile = (int)((player->position.x - radius) / tile_w);
-  right_tile = (int)((player->position.x + radius) / tile_w);
-  top_tile = (int)((new_y - radius) / tile_h);
-  bottom_tile = (int)((new_y + radius) / tile_h);
+  left_tile =
+      (int)((player->position.x - radius - level->offset_x) / level->tile_size);
+  right_tile =
+      (int)((player->position.x + radius - level->offset_x) / level->tile_size);
+  top_tile = (int)((new_y - radius - level->offset_y) / level->tile_size);
+  bottom_tile = (int)((new_y + radius - level->offset_y) / level->tile_size);
 
-  if (!is_blocked(level.data[top_tile][left_tile]) &&
-      !is_blocked(level.data[bottom_tile][left_tile]) &&
-      !is_blocked(level.data[top_tile][right_tile]) &&
-      !is_blocked(level.data[bottom_tile][right_tile])) {
+  left_tile = left_tile < 0 ? 0
+                            : (left_tile >= level->columns ? level->columns - 1
+                                                           : left_tile);
+  right_tile =
+      right_tile < 0
+          ? 0
+          : (right_tile >= level->columns ? level->columns - 1 : right_tile);
+  top_tile =
+      top_tile < 0 ? 0 : (top_tile >= level->rows ? level->rows - 1 : top_tile);
+  bottom_tile = bottom_tile < 0 ? 0
+                                : (bottom_tile >= level->rows ? level->rows - 1
+                                                              : bottom_tile);
+
+  if (!is_blocked(level->data[top_tile][left_tile]) &&
+      !is_blocked(level->data[bottom_tile][left_tile]) &&
+      !is_blocked(level->data[top_tile][right_tile]) &&
+      !is_blocked(level->data[bottom_tile][right_tile])) {
     player->position.y = new_y;
   }
 }
@@ -129,8 +155,8 @@ bool is_blocked(char c) { return c == '#' || c == '@'; }
 
 bool collides_with_level(float x, float y, float radius, Level level,
                          int screenWidth, int screenHeight) {
-  int tile_rows = level.height;
-  int tile_cols = level.width;
+  int tile_rows = level.rows;
+  int tile_cols = level.columns;
   int tile_w = screenWidth / tile_cols;
   int tile_h = screenHeight / tile_rows;
 
@@ -157,23 +183,41 @@ bool collides_with_level(float x, float y, float radius, Level level,
   return false;
 }
 
-void render_player(Player player) {
-  float name_size = MeasureText(player.name, 20);
-  float middle_x = player.position.x - name_size / 2;
-  DrawText(player.name, middle_x, player.position.y - player.radius - 25, 20,
+void render_player(Player *player, char player_no, Level *level, bool first) {
+  if (first) {
+    for (int y = 0; y < level->rows; y++) {
+      for (int x = 0; x < level->columns; x++) {
+        if (level->data[y][x] == player_no) {
+          player->position.x = x * level->tile_size + level->offset_x +
+                               (float)level->tile_size / 2;
+          player->position.y = y * level->tile_size + level->offset_y +
+                               (float)level->tile_size / 2;
+          player->radius = (float)level->tile_size / 2;
+          first = false;
+          break;
+        }
+      }
+    }
+  }
+  float name_size = MeasureText(player->name, 20);
+  float middle_x = player->position.x - name_size / 2;
+  DrawText(player->name, middle_x, player->position.y - player->radius - 25, 20,
            WHITE);
-  DrawCircleV(player.position, player.radius, player.color);
+  DrawCircleV(player->position, player->radius, player->color);
 }
 
-bool check_level_completion(Player player, Level level, int screenWidth,
-                            int screenHeight) {
-  int tile_rows = level.height;
-  int tile_cols = level.width;
-  int tile_w = screenWidth / tile_cols;
-  int tile_h = screenHeight / tile_rows;
+bool check_level_completion(Player player, Level level, int screen_width,
+                            int screen_height) {
+  int tile_width = screen_width / level.columns;
+  int tile_height = screen_height / level.rows;
+  int tile_size = tile_width < tile_height ? tile_width : tile_height;
+  int level_pixel_width = tile_size * level.columns;
+  int level_pixel_height = tile_size * level.rows;
+  int offset_x = (screen_width - level_pixel_width) / 2;
+  int offset_y = (screen_height - level_pixel_height) / 2;
 
-  int player_tile_x = (int)(player.position.x / tile_w);
-  int player_tile_y = (int)(player.position.y / tile_h);
+  int player_tile_x = (int)((player.position.x - offset_x) / tile_size);
+  int player_tile_y = (int)((player.position.y - offset_y) / tile_size);
 
   if (level.data[player_tile_y][player_tile_x] == 'O') {
     return true;

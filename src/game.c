@@ -6,6 +6,10 @@
 #include <stdlib.h>
 
 void start_game(Config *config) {
+  printf(
+      "Starting game with resolution %dx%d, fullscreen: %d, target FPS: %d\n",
+      config->screenWidth, config->screenHeight, config->fullscreen,
+      config->targetFPS);
   GameScreen currentScreen = START;
   const char *title = "Test Game";
   if (config->fullscreen) {
@@ -19,11 +23,12 @@ void start_game(Config *config) {
   const int halfScreenWidth = screenWidth / 2;
   const int halfScreenHeight = screenHeight / 2;
   Player player_one =
-      generate_player("Player1", screenWidth * 0.9f, screenHeight * 0.8f, PINK);
+      generate_player("Player1", screenWidth * 0.9f, screenHeight * 0.7f, PINK);
   Player player_two = generate_player("Player2", screenWidth * 0.1f,
-                                      screenHeight * 0.2f, VIOLET);
+                                      screenHeight * 0.3f, VIOLET);
   SetTargetFPS(config->targetFPS);
   Level level = get_level(1);
+  printf("Entering main game loop\n");
   Menu *menu = malloc(sizeof(Menu));
   if (menu == NULL) {
     printf("Error menu");
@@ -37,6 +42,9 @@ void start_game(Config *config) {
   menu->currentScreen = START;
   menu->screenWidth = screenWidth;
   menu->screenHeight = screenHeight;
+  menu->player1Color = BLACK;
+  menu->player2Color = BLACK;
+  bool firstFrame = true;
   while (!WindowShouldClose()) {
     BeginDrawing();
     ClearBackground(RAYWHITE);
@@ -49,8 +57,8 @@ void start_game(Config *config) {
       }
     }
     if (currentScreen == LEVEL_ONE) {
-      update_position(&player_one, false, level, screenWidth, screenHeight);
-      update_position(&player_two, true, level, screenWidth, screenHeight);
+      update_position(&player_one, false, &level);
+      update_position(&player_two, true, &level);
 
       two_player_collision(&player_one, &player_two, level, screenWidth,
                            screenHeight);
@@ -66,10 +74,13 @@ void start_game(Config *config) {
       const char *player_two_pos_text =
           TextFormat("Player2 Pos: (%.2f, %.2f)", player_two.position.x,
                      player_two.position.y);
-      ClearBackground(RED);
+      ClearBackground(BLACK);
       render_level(level, screenWidth, screenHeight);
-      render_player(player_one);
-      render_player(player_two);
+      render_player(&player_one, '1', &level, firstFrame);
+      render_player(&player_two, '2', &level, firstFrame);
+      if (firstFrame) {
+        firstFrame = false;
+      }
       DrawText(fpsText, 0, 0, 20, WHITE);
       DrawText(screenInfo, 0, 20, 20, WHITE);
       DrawText(playerPosText, 0, 40, 20, WHITE);
@@ -78,19 +89,20 @@ void start_game(Config *config) {
                                  screenHeight) ||
           check_level_completion(player_two, level, screenWidth,
                                  screenHeight)) {
+        firstFrame = true;
         currentScreen = LEVEL_TWO;
       }
     }
     if (currentScreen == LEVEL_TWO) {
       if (level.level != 2) {
         player_one.position =
-            (Vector2){screenWidth * 0.9f, screenHeight * 0.8f};
+            (Vector2){screenWidth * 0.9f, screenHeight * 0.7f};
         player_two.position =
-            (Vector2){screenWidth * 0.1f, screenHeight * 0.2f};
+            (Vector2){screenWidth * 0.1f, screenHeight * 0.3f};
         level = get_level(2);
       }
-      update_position(&player_one, false, level, screenWidth, screenHeight);
-      update_position(&player_two, true, level, screenWidth, screenHeight);
+      update_position(&player_one, false, &level);
+      update_position(&player_two, true, &level);
 
       two_player_collision(&player_one, &player_two, level, screenWidth,
                            screenHeight);
@@ -106,10 +118,13 @@ void start_game(Config *config) {
       const char *player_two_pos_text =
           TextFormat("Player2 Pos: (%.2f, %.2f)", player_two.position.x,
                      player_two.position.y);
-      ClearBackground(RED);
+      ClearBackground(BLACK);
       render_level(level, screenWidth, screenHeight);
-      render_player(player_one);
-      render_player(player_two);
+      render_player(&player_one, '1', &level, firstFrame);
+      render_player(&player_two, '2', &level, firstFrame);
+      if (firstFrame) {
+        firstFrame = false;
+      }
       DrawText(fpsText, 0, 0, 20, WHITE);
       DrawText(screenInfo, 0, 20, 20, WHITE);
       DrawText(playerPosText, 0, 40, 20, WHITE);
@@ -128,5 +143,8 @@ void start_game(Config *config) {
     EndDrawing();
   }
   UnloadTexture(level.wall_texture.texture);
+  UnloadTexture(level.ground_texture.texture);
+  UnloadTexture(level.target_texture.texture);
+  UnloadTexture(level.house_texture.texture);
   CloseWindow();
 }

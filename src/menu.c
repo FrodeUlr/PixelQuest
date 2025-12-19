@@ -5,12 +5,16 @@ void draw_main_menu(Menu *menu) {
   int halfScreenHeight = menu->screenHeight / 2;
   DrawText("Player 1 name:", halfScreenWidth - 80, halfScreenHeight - 190, 20,
            BLACK);
+  DrawRectangleLines(halfScreenWidth - 100, halfScreenHeight - 170, 201, 41,
+                     menu->player1Color);
   DrawRectangle(halfScreenWidth - 100, halfScreenHeight - 170, 200, 40,
                 LIGHTGRAY);
   DrawText(menu->player1Name, halfScreenWidth - 90, halfScreenHeight - 160, 20,
            BLACK);
   DrawText("Player 2 name:", halfScreenWidth - 80, halfScreenHeight - 120, 20,
            BLACK);
+  DrawRectangleLines(halfScreenWidth - 100, halfScreenHeight - 100, 201, 41,
+                     menu->player2Color);
   DrawRectangle(halfScreenWidth - 100, halfScreenHeight - 100, 200, 40,
                 LIGHTGRAY);
   DrawText(menu->player2Name, halfScreenWidth - 90, halfScreenHeight - 90, 20,
@@ -22,15 +26,19 @@ void draw_main_menu(Menu *menu) {
     Vector2 mouse = GetMousePosition();
     if (CheckCollisionPointRec(mouse,
                                (Rectangle){halfScreenWidth - 100,
-                                           halfScreenHeight - 170, 200, 40}))
+                                           halfScreenHeight - 170, 200, 40})) {
       menu->editingPlayer1 = true;
-    else if (CheckCollisionPointRec(mouse, (Rectangle){halfScreenWidth - 100,
-                                                       halfScreenHeight - 100,
-                                                       200, 40}))
+      menu->player1Color = LIME;
+      menu->player2Color = BLACK;
+    } else if (CheckCollisionPointRec(mouse, (Rectangle){halfScreenWidth - 100,
+                                                         halfScreenHeight - 100,
+                                                         200, 40})) {
       menu->editingPlayer1 = false;
-    else if (CheckCollisionPointRec(mouse,
-                                    (Rectangle){halfScreenWidth - 100,
-                                                halfScreenHeight, 200, 40})) {
+      menu->player1Color = BLACK;
+      menu->player2Color = LIME;
+    } else if (CheckCollisionPointRec(mouse,
+                                      (Rectangle){halfScreenWidth - 100,
+                                                  halfScreenHeight, 200, 40})) {
       menu->currentScreen = LEVEL_ONE;
     }
   }

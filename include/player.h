@@ -16,8 +16,7 @@ typedef struct Player {
 
 Player generate_player(char *name, float x, float y, Color color);
 
-void update_position(Player *player, bool TwoPlayer, Level level,
-                     int screenWidth, int screenHeight);
+void update_position(Player *player, bool TwoPlayer, Level *level);
 
 void check_collision(Player *player, int screenWidth, int screenHeight);
 void two_player_collision(Player *player1, Player *player2, Level level,
@@ -25,7 +24,7 @@ void two_player_collision(Player *player1, Player *player2, Level level,
 bool is_blocked(char tile);
 bool collides_with_level(float x, float y, float radius, Level level,
                          int screenWidth, int screenHeight);
-void render_player(Player player);
-bool check_level_completion(Player player, Level level, int screenWidth,
-                            int screenHeight);
+void render_player(Player *player, char player_no, Level *level, bool first);
+bool check_level_completion(Player player, Level level, int screen_width,
+                            int screen_height);
 #endif

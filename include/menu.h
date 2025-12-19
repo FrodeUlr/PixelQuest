@@ -14,6 +14,8 @@ typedef struct Menu {
   int currentScreen;
   int screenWidth;
   int screenHeight;
+  Color player1Color;
+  Color player2Color;
 } Menu;
 
 void draw_main_menu(Menu *menu);
