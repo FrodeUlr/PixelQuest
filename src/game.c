@@ -18,16 +18,17 @@ void start_game(Config *config) {
   } else {
     InitWindow(config->screenWidth, config->screenHeight, title);
   }
-  const int screenWidth = GetScreenWidth();
-  const int screenHeight = GetScreenHeight();
-  const int halfScreenWidth = screenWidth / 2;
-  const int halfScreenHeight = screenHeight / 2;
-  Player player_one =
-      generate_player("Player1", screenWidth * 0.9f, screenHeight * 0.7f, PINK);
-  Player player_two = generate_player("Player2", screenWidth * 0.1f,
-                                      screenHeight * 0.3f, VIOLET);
+  const int screen_width = GetScreenWidth();
+  const int screen_height = GetScreenHeight();
+  const int half_screen_width = screen_width / 2;
+  const int half_screen_height = screen_height / 2;
+  Player player_one = generate_player("Player1", screen_width * 0.9f,
+                                      screen_height * 0.7f, PINK);
+  Player player_two = generate_player("Player2", screen_width * 0.1f,
+                                      screen_height * 0.3f, VIOLET);
   SetTargetFPS(config->targetFPS);
-  Level level = get_level(1);
+  Level *level;
+  level = malloc(sizeof(Level));
   printf("Entering main game loop\n");
   Menu *menu = malloc(sizeof(Menu));
   if (menu == NULL) {
@@ -40,11 +41,10 @@ void start_game(Config *config) {
   menu->player2NameLen = 0;
   menu->editingPlayer1 = true;
   menu->currentScreen = START;
-  menu->screenWidth = screenWidth;
-  menu->screenHeight = screenHeight;
+  menu->screenWidth = screen_width;
+  menu->screenHeight = screen_height;
   menu->player1Color = BLACK;
   menu->player2Color = BLACK;
-  bool firstFrame = true;
   while (!WindowShouldClose()) {
     BeginDrawing();
     ClearBackground(RAYWHITE);
@@ -55,96 +55,70 @@ void start_game(Config *config) {
         player_two.name = menu->player2Name;
         currentScreen = menu->currentScreen;
       }
-    }
-    if (currentScreen == LEVEL_ONE) {
-      update_position(&player_one, false, &level);
-      update_position(&player_two, true, &level);
+    } else if (currentScreen == GAME_OVER) {
+      DrawText("GAME OVER", half_screen_width - 100, half_screen_height - 20,
+               40, BLACK);
+      if (IsKeyPressed(KEY_ENTER)) {
+        currentScreen = START;
+        menu->currentScreen = START;
+      }
+    } else {
+      if (currentScreen == LEVEL_ONE) {
+        if (level->level != 1) {
+          *level = get_level(1);
+          level->first_frame = true;
+        }
+        if (check_level_completion(&player_one, level) ||
+            check_level_completion(&player_two, level)) {
+          currentScreen = LEVEL_TWO;
+        }
+      }
+      if (currentScreen == LEVEL_TWO) {
+        if (level->level != 2) {
+          *level = get_level(2);
+          level->first_frame = true;
+        }
+        if (check_level_completion(&player_one, level) ||
+            check_level_completion(&player_two, level)) {
+          currentScreen = GAME_OVER;
+        }
+      }
+      ClearBackground(BLACK);
+      render_level(level, screen_width, screen_height);
+      render_player(&player_one, '1', level);
+      render_player(&player_two, '2', level);
+      update_position(&player_one, false, level);
+      update_position(&player_two, true, level);
 
-      two_player_collision(&player_one, &player_two, level, screenWidth,
-                           screenHeight);
-      check_collision(&player_one, screenWidth, screenHeight);
-      check_collision(&player_two, screenWidth, screenHeight);
-
+      two_player_collision(&player_one, &player_two, level, screen_width,
+                           screen_height);
+      check_collision(&player_one, screen_width, screen_height);
+      check_collision(&player_two, screen_width, screen_height);
       const char *fpsText = TextFormat("FPS: %d", GetFPS());
       const char *screenInfo =
-          TextFormat("Screen: %dx%d", screenWidth, screenHeight);
+          TextFormat("Screen: %dx%d", screen_width, screen_height);
       const char *playerPosText =
           TextFormat("Player1 Pos: (%.2f, %.2f)", player_one.position.x,
                      player_one.position.y);
       const char *player_two_pos_text =
           TextFormat("Player2 Pos: (%.2f, %.2f)", player_two.position.x,
                      player_two.position.y);
-      ClearBackground(BLACK);
-      render_level(level, screenWidth, screenHeight);
-      render_player(&player_one, '1', &level, firstFrame);
-      render_player(&player_two, '2', &level, firstFrame);
-      if (firstFrame) {
-        firstFrame = false;
+      if (level->first_frame) {
+        level->first_frame = false;
       }
+      char str[] = "Level first frame: ";
+      snprintf(str + 18, 2, "%s", level->first_frame ? "true" : "false");
       DrawText(fpsText, 0, 0, 20, WHITE);
       DrawText(screenInfo, 0, 20, 20, WHITE);
       DrawText(playerPosText, 0, 40, 20, WHITE);
       DrawText(player_two_pos_text, 0, 60, 20, WHITE);
-      if (check_level_completion(player_one, level, screenWidth,
-                                 screenHeight) ||
-          check_level_completion(player_two, level, screenWidth,
-                                 screenHeight)) {
-        firstFrame = true;
-        currentScreen = LEVEL_TWO;
-      }
-    }
-    if (currentScreen == LEVEL_TWO) {
-      if (level.level != 2) {
-        player_one.position =
-            (Vector2){screenWidth * 0.9f, screenHeight * 0.7f};
-        player_two.position =
-            (Vector2){screenWidth * 0.1f, screenHeight * 0.3f};
-        level = get_level(2);
-      }
-      update_position(&player_one, false, &level);
-      update_position(&player_two, true, &level);
-
-      two_player_collision(&player_one, &player_two, level, screenWidth,
-                           screenHeight);
-      check_collision(&player_one, screenWidth, screenHeight);
-      check_collision(&player_two, screenWidth, screenHeight);
-
-      const char *fpsText = TextFormat("FPS: %d", GetFPS());
-      const char *screenInfo =
-          TextFormat("Screen: %dx%d", screenWidth, screenHeight);
-      const char *playerPosText =
-          TextFormat("Player1 Pos: (%.2f, %.2f)", player_one.position.x,
-                     player_one.position.y);
-      const char *player_two_pos_text =
-          TextFormat("Player2 Pos: (%.2f, %.2f)", player_two.position.x,
-                     player_two.position.y);
-      ClearBackground(BLACK);
-      render_level(level, screenWidth, screenHeight);
-      render_player(&player_one, '1', &level, firstFrame);
-      render_player(&player_two, '2', &level, firstFrame);
-      if (firstFrame) {
-        firstFrame = false;
-      }
-      DrawText(fpsText, 0, 0, 20, WHITE);
-      DrawText(screenInfo, 0, 20, 20, WHITE);
-      DrawText(playerPosText, 0, 40, 20, WHITE);
-      DrawText(player_two_pos_text, 0, 60, 20, WHITE);
-      if (check_level_completion(player_one, level, screenWidth,
-                                 screenHeight) ||
-          check_level_completion(player_two, level, screenWidth,
-                                 screenHeight)) {
-        currentScreen = GAME_OVER;
-      }
-    }
-    if (currentScreen == GAME_OVER) {
-      DrawText("GAME OVER", halfScreenWidth - 100, halfScreenHeight - 20, 40,
-               BLACK);
+      DrawText(str, 0, 80, 20, WHITE);
     }
     EndDrawing();
   }
-  UnloadTexture(level.wall_texture.texture);
-  UnloadTexture(level.ground_texture.texture);
-  UnloadTexture(level.target_texture.texture);
-  UnloadTexture(level.house_texture.texture);
+  UnloadTexture(level->wall_texture.texture);
+  UnloadTexture(level->ground_texture.texture);
+  UnloadTexture(level->target_texture.texture);
+  UnloadTexture(level->house_texture.texture);
   CloseWindow();
 }

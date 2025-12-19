@@ -122,7 +122,7 @@ void check_collision(Player *player, int screenWidth, int screenHeight) {
     player->position.y = screenHeight - player->radius;
 }
 
-void two_player_collision(Player *player1, Player *player2, Level level,
+void two_player_collision(Player *player1, Player *player2, Level *level,
                           int screenWidth, int screenHeight) {
   float dx = player1->position.x - player2->position.x;
   float dy = player1->position.y - player2->position.y;
@@ -153,12 +153,10 @@ void two_player_collision(Player *player1, Player *player2, Level level,
 
 bool is_blocked(char c) { return c == '#' || c == '@'; }
 
-bool collides_with_level(float x, float y, float radius, Level level,
+bool collides_with_level(float x, float y, float radius, Level *level,
                          int screenWidth, int screenHeight) {
-  int tile_rows = level.rows;
-  int tile_cols = level.columns;
-  int tile_w = screenWidth / tile_cols;
-  int tile_h = screenHeight / tile_rows;
+  int tile_w = screenWidth / level->columns;
+  int tile_h = screenHeight / level->rows;
 
   int left_tile = (int)((x - radius) / tile_w);
   int right_tile = (int)((x + radius) / tile_w);
@@ -167,24 +165,24 @@ bool collides_with_level(float x, float y, float radius, Level level,
 
   if (left_tile < 0)
     left_tile = 0;
-  if (right_tile >= tile_cols)
-    right_tile = tile_cols - 1;
+  if (right_tile >= level->columns)
+    right_tile = level->rows - 1;
   if (top_tile < 0)
     top_tile = 0;
-  if (bottom_tile >= tile_rows)
-    bottom_tile = tile_rows - 1;
+  if (bottom_tile >= level->rows)
+    bottom_tile = level->rows - 1;
 
   for (int i = top_tile; i <= bottom_tile; i++) {
     for (int j = left_tile; j <= right_tile; j++) {
-      if (is_blocked(level.data[i][j]))
+      if (is_blocked(level->data[i][j]))
         return true;
     }
   }
   return false;
 }
 
-void render_player(Player *player, char player_no, Level *level, bool first) {
-  if (first) {
+void render_player(Player *player, char player_no, Level *level) {
+  if (level->first_frame) {
     for (int y = 0; y < level->rows; y++) {
       for (int x = 0; x < level->columns; x++) {
         if (level->data[y][x] == player_no) {
@@ -193,7 +191,6 @@ void render_player(Player *player, char player_no, Level *level, bool first) {
           player->position.y = y * level->tile_size + level->offset_y +
                                (float)level->tile_size / 2;
           player->radius = (float)level->tile_size / 2;
-          first = false;
           break;
         }
       }
@@ -206,20 +203,13 @@ void render_player(Player *player, char player_no, Level *level, bool first) {
   DrawCircleV(player->position, player->radius, player->color);
 }
 
-bool check_level_completion(Player player, Level level, int screen_width,
-                            int screen_height) {
-  int tile_width = screen_width / level.columns;
-  int tile_height = screen_height / level.rows;
-  int tile_size = tile_width < tile_height ? tile_width : tile_height;
-  int level_pixel_width = tile_size * level.columns;
-  int level_pixel_height = tile_size * level.rows;
-  int offset_x = (screen_width - level_pixel_width) / 2;
-  int offset_y = (screen_height - level_pixel_height) / 2;
+bool check_level_completion(Player *player, Level *level) {
+  int player_tile_x =
+      (int)((player->position.x - level->offset_x) / level->tile_size);
+  int player_tile_y =
+      (int)((player->position.y - level->offset_y) / level->tile_size);
 
-  int player_tile_x = (int)((player.position.x - offset_x) / tile_size);
-  int player_tile_y = (int)((player.position.y - offset_y) / tile_size);
-
-  if (level.data[player_tile_y][player_tile_x] == 'O') {
+  if (level->data[player_tile_y][player_tile_x] == 'O') {
     return true;
   }
   return false;

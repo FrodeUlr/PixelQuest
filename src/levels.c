@@ -75,6 +75,7 @@ Level get_level(int number) {
                                        "../sprites/Tiles/Cliff_Tile.png");
     level.ground_texture = SetTextureDef("Ground_Tile", 0, 48, 0, 48,
                                          "../sprites/Tiles/Path_Middle.png");
+    level.first_frame = true;
     break;
   }
   }
@@ -98,11 +99,11 @@ void DrawTextureForGame(Level *level, TextureDef tdef, int x_dest, int y_dest,
   DrawTexturePro(tdef.texture, source, dest, origin, rotation, WHITE);
 }
 
-void render_level(Level level, int screen_width, int screen_height) {
+void render_level(Level *level, int screen_width, int screen_height) {
   TILE_TYPE tile_type;
-  for (int y = 0; y < level.rows; y++) {
-    for (int x = 0; x < level.columns; x++) {
-      char tile = level.data[y][x];
+  for (int y = 0; y < level->rows; y++) {
+    for (int x = 0; x < level->columns; x++) {
+      char tile = level->data[y][x];
       Color color;
       switch (tile) {
       case '#':
@@ -136,16 +137,16 @@ void render_level(Level level, int screen_width, int screen_height) {
         break;
       }
       if (tile_type == TARGET) {
-        DrawTextureForGame(&level, level.ground_texture, x, y, 1);
-        DrawTextureForGame(&level, level.target_texture, x, y, 1);
+        DrawTextureForGame(level, level->ground_texture, x, y, 1);
+        DrawTextureForGame(level, level->target_texture, x, y, 1);
       } else if (tile_type == WALL) {
-        DrawTextureForGame(&level, level.wall_texture, x, y, 1);
+        DrawTextureForGame(level, level->wall_texture, x, y, 1);
       } else if (tile_type == GROUND) {
-        DrawTextureForGame(&level, level.ground_texture, x, y, 1);
+        DrawTextureForGame(level, level->ground_texture, x, y, 1);
       } else if (tile_type == PLAYER) {
-        DrawTextureForGame(&level, level.ground_texture, x, y, 1);
+        DrawTextureForGame(level, level->ground_texture, x, y, 1);
       } else {
-        DrawTextureForGame(&level, level.ground_texture, x, y, 1);
+        DrawTextureForGame(level, level->ground_texture, x, y, 1);
       }
     }
   }
