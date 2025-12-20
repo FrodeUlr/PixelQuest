@@ -34,13 +34,11 @@ Player generate_player(char *name, PlayerType player_type, float x, float y,
 void SetPlayerKeys(Player *player);
 void render_players(Player *players[], size_t player_count, Level *level);
 
-void update_position(Player *player, Level *level);
+void update_position(Player *players[], int plaer_count, Level *level);
 
-void check_collision(Player *player, int screenWidth, int screenHeight);
 void two_player_collision(Player *player1, Player *player2, Level *level,
                           int screenWidth, int screenHeight);
-bool collides_with_level(float x, float y, float radius, Level *level,
-                         int screenWidth, int screenHeight);
+bool collides_with_level(float x, float y, float radius, Level *level);
 bool is_blocked(char tile);
 
 bool check_level_completion(Player *player[], Level *level,

@@ -5,7 +5,7 @@
 #include <stdbool.h>
 
 typedef struct Level {
-  int level;
+  int number;
   int columns;
   int rows;
   int offset_x;
@@ -24,6 +24,6 @@ typedef enum { WALL, TARGET, WATER, GROUND, HOUSE, PLAYER } TILE_TYPE;
 
 void render_level(Level *level, int screen_width, int screen_height);
 void set_offset(Level *level);
-Level get_level(int number);
+void set_level(Level *level, int number);
 
 #endif

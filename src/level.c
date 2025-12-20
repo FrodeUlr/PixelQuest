@@ -15,12 +15,11 @@ void set_offset(Level *level) {
   level->offset_y = (screen_height - level_pixel_height) / 2;
 }
 
-Level get_level(int number) {
-  Level level;
+void set_level(Level *level, int number) {
   const char **level_data = NULL;
-  level.target_texture = SetTextureDef(
+  level->target_texture = SetTextureDef(
       "Target_Tile", 0, 16, 0, 16, "../sprites/Outdoor decoration/Chest.png");
-  level.house_texture =
+  level->house_texture =
       SetTextureDef("House_Tile", 0, 96, 0, 128,
                     "../sprites/Outdoor decoration/House_1_Wood_Base_Blue.png");
   int height = 0;
@@ -45,11 +44,11 @@ Level get_level(int number) {
     };
 
     height = sizeof(data) / sizeof(data[0]);
-    level.data = data;
-    level.wall_texture = SetTextureDef("Stone_Tile", 0, 48, 0, 48,
-                                       "../sprites/Tiles/FarmLand_Tile.png");
-    level.ground_texture = SetTextureDef("Ground_Tile", 0, 48, 0, 48,
-                                         "../sprites/Tiles/Grass_Middle.png");
+    level->data = data;
+    level->wall_texture = SetTextureDef("Stone_Tile", 0, 48, 0, 48,
+                                        "../sprites/Tiles/FarmLand_Tile.png");
+    level->ground_texture = SetTextureDef("Ground_Tile", 0, 48, 0, 48,
+                                          "../sprites/Tiles/Grass_Middle.png");
     break;
   }
   case 2: {
@@ -71,21 +70,20 @@ Level get_level(int number) {
         "##########################################",
     };
     height = sizeof(data) / sizeof(data[0]);
-    level.data = data;
-    level.wall_texture = SetTextureDef("Stone_Tile", 0, 48, 0, 48,
-                                       "../sprites/Tiles/Cliff_Tile.png");
-    level.ground_texture = SetTextureDef("Ground_Tile", 0, 48, 0, 48,
-                                         "../sprites/Tiles/Path_Middle.png");
-    level.first_frame = true;
+    level->data = data;
+    level->wall_texture = SetTextureDef("Stone_Tile", 0, 48, 0, 48,
+                                        "../sprites/Tiles/Cliff_Tile.png");
+    level->ground_texture = SetTextureDef("Ground_Tile", 0, 48, 0, 48,
+                                          "../sprites/Tiles/Path_Middle.png");
+    level->first_frame = true;
     break;
   }
   }
-  level.level = number;
-  level.completed = false;
-  level.columns = level.data ? strlen(level.data[0]) : 0;
-  level.rows = height;
-  set_offset(&level);
-  return level;
+  level->number = number;
+  level->completed = false;
+  level->columns = level->data ? strlen(level->data[0]) : 0;
+  level->rows = height;
+  set_offset(level);
 }
 
 void DrawTextureForGame(Level *level, TextureDef tdef, int x_dest, int y_dest,
