@@ -25,12 +25,13 @@ typedef struct Player {
   float max_speed;
   float radius;
   float mass;
+  char number;
 } Player;
 
 Player generate_player(char *name, PlayerType player_type, float x, float y,
                        Color color);
 void SetPlayerKeys(Player *player);
-void render_player(Player *player, char player_no, Level *level);
+void render_players(Player *players[], size_t player_count, Level *level);
 
 void update_position(Player *player, Level *level);
 

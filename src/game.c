@@ -5,12 +5,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void start_game(Config *config) {
+void start_game(Game *game, Config *config) {
   printf(
       "Starting game with resolution %dx%d, fullscreen: %d, target FPS: %d\n",
       config->screenWidth, config->screenHeight, config->fullscreen,
       config->targetFPS);
-  GameScreen currentScreen = START;
   const char *title = "Test Game";
   if (config->fullscreen) {
     SetConfigFlags(FLAG_FULLSCREEN_MODE);
@@ -36,50 +35,53 @@ void start_game(Config *config) {
     return;
   }
   new_menu(menu);
-  while (!WindowShouldClose()) {
+  while (game->running) {
     BeginDrawing();
     ClearBackground(RAYWHITE);
-    if (currentScreen == START) {
-      draw_main_menu(menu);
-      if (menu->currentScreen != START) {
+    if (game->game_state == MAIN_MENU) {
+      draw_main_menu(menu, game);
+      if (game->game_state == EXIT) {
+        printf("Exiting game from main menu\n");
+        game->running = false;
+      } else if (game->game_state != MAIN_MENU && menu->player1NameLen != 0 &&
+                 menu->player2NameLen != 0) {
         *players[0] =
             generate_player(menu->player1Name, PLAYER_ONE, screen_width * 0.9f,
                             screen_height * 0.7f, PINK);
         *players[1] =
             generate_player(menu->player2Name, PLAYER_TWO, screen_width * 0.1f,
                             screen_height * 0.3f, VIOLET);
-        currentScreen = menu->currentScreen;
+      } else {
+        game->game_state = MAIN_MENU;
       }
-    } else if (currentScreen == GAME_OVER) {
+    } else if (game->game_state == GAME_OVER) {
       DrawText("GAME OVER", half_screen_width - 100, half_screen_height - 20,
                40, BLACK);
       if (IsKeyPressed(KEY_ENTER)) {
-        currentScreen = START;
-        menu->currentScreen = START;
+        game->game_state = MAIN_MENU;
       }
-    } else {
-      if (currentScreen == LEVEL_ONE) {
+    } else if (game->game_state != MAIN_MENU || game->game_state != EXIT) {
+      if (game->game_state == LEVEL_ONE) {
         if (level->level != 1) {
           *level = get_level(1);
           level->first_frame = true;
         }
         if (check_level_completion(players, level, player_count)) {
-          currentScreen = LEVEL_TWO;
+          game->game_state = LEVEL_TWO;
         }
       }
-      if (currentScreen == LEVEL_TWO) {
+      if (game->game_state == LEVEL_TWO) {
         if (level->level != 2) {
           *level = get_level(2);
           level->first_frame = true;
         }
         if (check_level_completion(players, level, player_count)) {
-          currentScreen = GAME_OVER;
+          game->game_state = GAME_OVER;
         }
       }
       ClearBackground(BLACK);
       render_level(level, screen_width, screen_height);
-      render_player(&player_one, '1', level);
-      render_player(&player_two, '2', level);
+      render_players(players, player_count, level);
       update_position(&player_one, level);
       update_position(&player_two, level);
 
@@ -103,12 +105,19 @@ void start_game(Config *config) {
       DrawText(screenInfo, 0, 20, 20, WHITE);
       DrawText(playerPosText, 0, 40, 20, WHITE);
       DrawText(player_two_pos_text, 0, 60, 20, WHITE);
+      check_inputs(menu, game, level);
     }
     EndDrawing();
   }
-  UnloadTexture(level->wall_texture.texture);
-  UnloadTexture(level->ground_texture.texture);
-  UnloadTexture(level->target_texture.texture);
-  UnloadTexture(level->house_texture.texture);
+  /* if (level != NULL) { */
+  /*   UnloadTexture(level->wall_texture.texture); */
+  /*   UnloadTexture(level->ground_texture.texture); */
+  /*   UnloadTexture(level->target_texture.texture); */
+  /*   UnloadTexture(level->house_texture.texture); */
+  /*   free(level); */
+  /* } */
+  /* if (menu != NULL) { */
+  /*   free(menu); */
+  /* } */
   CloseWindow();
 }

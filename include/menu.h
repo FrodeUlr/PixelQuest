@@ -11,7 +11,6 @@ typedef struct Menu {
   int player1NameLen;
   int player2NameLen;
   bool editingPlayer1;
-  int currentScreen;
   int screenWidth;
   int screenHeight;
   Color player1Color;
@@ -19,6 +18,7 @@ typedef struct Menu {
 } Menu;
 
 void new_menu(Menu *menu);
-void draw_main_menu(Menu *menu);
+void draw_main_menu(Menu *menu, Game *game);
+void check_inputs(Menu *menu, Game *game, Level *level);
 
 #endif // !DEBUG

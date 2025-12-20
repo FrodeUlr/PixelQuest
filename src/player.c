@@ -16,6 +16,7 @@ Player generate_player(char *name, PlayerType player_type, float x, float y,
   player.color = color;
   player.mass = 1.0f;
   SetPlayerKeys(&player);
+  player.number = (player_type == PLAYER_ONE) ? '1' : '2';
   return player;
 }
 
@@ -54,8 +55,6 @@ void update_position(Player *player, Level *level) {
     if (player->speed < player->max_speed) {
       player->acceleration += 0.1f;
       player->speed += player->acceleration;
-      printf("Increased speed: %.2f -> \nIncreased acceleration %.2f -> \n",
-             player->speed, player->acceleration);
     }
   } else {
     player->acceleration = 0.0f;
@@ -189,26 +188,28 @@ bool collides_with_level(float x, float y, float radius, Level *level,
   return false;
 }
 
-void render_player(Player *player, char player_no, Level *level) {
-  if (level->first_frame) {
-    for (int y = 0; y < level->rows; y++) {
-      for (int x = 0; x < level->columns; x++) {
-        if (level->data[y][x] == player_no) {
-          player->position.x = x * level->tile_size + level->offset_x +
-                               (float)level->tile_size / 2;
-          player->position.y = y * level->tile_size + level->offset_y +
-                               (float)level->tile_size / 2;
-          player->radius = (float)level->tile_size / 2;
-          break;
+void render_players(Player *players[], size_t player_count, Level *level) {
+  for (size_t i = 0; i < player_count; i++) {
+    if (level->first_frame) {
+      for (int y = 0; y < level->rows; y++) {
+        for (int x = 0; x < level->columns; x++) {
+          if (level->data[y][x] == players[i]->number) {
+            players[i]->position.x = x * level->tile_size + level->offset_x +
+                                     (float)level->tile_size / 2;
+            players[i]->position.y = y * level->tile_size + level->offset_y +
+                                     (float)level->tile_size / 2;
+            players[i]->radius = (float)level->tile_size / 2;
+            break;
+          }
         }
       }
     }
+    float name_size = MeasureText(players[i]->name, 20);
+    float middle_x = players[i]->position.x - name_size / 2;
+    DrawText(players[i]->name, middle_x,
+             players[i]->position.y - players[i]->radius - 25, 20, WHITE);
+    DrawCircleV(players[i]->position, players[i]->radius, players[i]->color);
   }
-  float name_size = MeasureText(player->name, 20);
-  float middle_x = player->position.x - name_size / 2;
-  DrawText(player->name, middle_x, player->position.y - player->radius - 25, 20,
-           WHITE);
-  DrawCircleV(player->position, player->radius, player->color);
 }
 
 bool check_level_completion(Player *player[], Level *level,
