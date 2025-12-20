@@ -1,5 +1,4 @@
 #include "../include/player.h"
-#include "../include/raylib.h"
 #include <math.h>
 #include <stdio.h>
 
@@ -9,12 +8,12 @@ Player generate_player(char *name, PlayerType player_type, float x, float y,
   player.name = name;
   player.player_type = player_type;
   player.position = (Vector2){x, y};
-  player.speed = 10.0f;
-  player.acceleration = 0.0f;
-  player.max_speed = 200.0f;
-  player.radius = 15.0f;
+  player.speed = PLAYER_START_SPEED;
+  player.acceleration = PLAYER_START_ACCELERATION;
+  player.max_speed = PLAYER_MAX_SPEED;
+  player.radius = PLAYER_RADIUS;
   player.color = color;
-  player.mass = 1.0f;
+  player.mass = PLAYER_MASS;
   SetPlayerKeys(&player);
   player.number = (player_type == PLAYER_ONE) ? '1' : '2';
   return player;

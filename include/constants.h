@@ -1,8 +1,11 @@
 #ifndef CONSTANTS_H
+#define CONSTANTS_H
 
-const float START_SPEED = 10.0f;
-const float MAX_SPEED = 200.0f;
-const float PLAYER_RADIUS = 20.0f;
-const float PLAYER_ACCELERATION = 0.1f;
+#define PLAYER_START_SPEED 10.0f;
+#define PLAYER_START_ACCELERATION 0.0f;
+#define PLAYER_MAX_SPEED 200.0f;
+#define PLAYER_RADIUS 15.0f;
+#define PLAYER_ACCELERATION 0.1f;
+#define PLAYER_MASS 1.0f;
 
 #endif
