@@ -9,7 +9,7 @@ void generate_player(Player *player, char *name, PlayerType playerType, float x,
   player->position = (Vector2){x, y};
   player->speed = PLAYER_START_SPEED;
   player->acceleration = PLAYER_START_ACCELERATION;
-  player->velocity = (Vector2){10.0f, 10.0f};
+  player->velocity = (Vector2){0.0f, 0.0f};
   player->accelerationVector = (Vector2){0.0f, 0.0f};
   player->maxSpeed = PLAYER_MAX_SPEED;
   player->radius = PLAYER_RADIUS;
@@ -146,6 +146,9 @@ void update_position(Player *players[], int playerCount, Level *level) {
         !is_blocked(level->data[top_tile][right_tile]) &&
         !is_blocked(level->data[bottom_tile][right_tile])) {
       players[i]->position.x = new_x;
+    } else {
+      players[i]->velocity.x *= 0.7f;
+      players[i]->accelerationVector.x = 0.0f;
     }
 
     left_tile = (int)((players[i]->position.x - radius - level->offsetX) /
@@ -176,6 +179,9 @@ void update_position(Player *players[], int playerCount, Level *level) {
         !is_blocked(level->data[top_tile][right_tile]) &&
         !is_blocked(level->data[bottom_tile][right_tile])) {
       players[i]->position.y = new_y;
+    } else {
+      players[i]->velocity.y *= 0.7f;
+      players[i]->accelerationVector.y = 0.0f;
     }
   }
 }
