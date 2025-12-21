@@ -9,7 +9,7 @@
 static char executable_dir_buffer[PATH_MAX];
 const char *EXECUTABLE_PATH = NULL;
 
-void get(const char *filename, char *buffer, size_t buffer_size,
+void get(const char *fileName, char *buffer, size_t bufferSize,
          Config *config) {
   char exe_path[PATH_MAX];
   ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
@@ -25,15 +25,15 @@ void get(const char *filename, char *buffer, size_t buffer_size,
   exe_dir[sizeof(exe_dir) - 1] = '\0';
 
   char *dir = dirname(exe_dir);
-  snprintf(buffer, buffer_size, "%s/%s", dir, filename);
+  snprintf(buffer, bufferSize, "%s/%s", dir, fileName);
   strncpy(executable_dir_buffer, dir, sizeof(executable_dir_buffer) - 1);
   executable_dir_buffer[sizeof(executable_dir_buffer) - 1] = '\0';
   EXECUTABLE_PATH = executable_dir_buffer;
 }
 
-void load(Config *config, const char *filename) {
+void load(Config *config, const char *fileName) {
   char configPath[PATH_MAX];
-  get(filename, configPath, PATH_MAX, config);
+  get(fileName, configPath, PATH_MAX, config);
   printf("Executable directory: %s\n", EXECUTABLE_PATH);
   printf("Loading config from: %s\n", configPath);
   FILE *file = fopen(configPath, "r");

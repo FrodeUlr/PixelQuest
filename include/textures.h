@@ -4,14 +4,14 @@
 
 typedef struct TextureDef {
   const char *name;
-  int start_x;
-  int end_x;
-  int start_y;
-  int end_y;
+  int startX;
+  int endX;
+  int startY;
+  int endY;
   Texture2D texture;
 } TextureDef;
 
-TextureDef SetTextureDef(const char *name, int start_x, int end_x, int start_y,
-                         int end_y, char *texture_path);
+TextureDef SetTextureDef(const char *name, int startX, int endX, int startY,
+                         int endY, char *texturePath);
 
 #endif // !DEBUG

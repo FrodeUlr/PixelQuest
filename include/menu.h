@@ -5,16 +5,26 @@
 #include "../include/raylib.h"
 #include <stdbool.h>
 
+typedef enum FocusField {
+  PLAYER1_NAME,
+  PLAYER2_NAME,
+  START_BUTTON,
+  EXIT_BUTTON,
+  FOCUS_FIELD_COUNT
+} FocusField;
+
 typedef struct Menu {
-  char player1Name[32];
-  char player2Name[32];
-  int player1NameLen;
-  int player2NameLen;
-  bool editingPlayer1;
+  char p1Name[16];
+  char p2Name[16];
+  int p1NameLen;
+  int p2NameLen;
+  FocusField focusField;
   int screenWidth;
   int screenHeight;
-  Color player1Color;
-  Color player2Color;
+  Color p1Color;
+  Color p2Color;
+  Color exitColor;
+  Color startColor;
 } Menu;
 
 void new_menu(Menu *menu);

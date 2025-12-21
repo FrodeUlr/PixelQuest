@@ -6,10 +6,10 @@
 
 typedef enum { MAIN_MENU, EXIT, LEVEL_ONE, LEVEL_TWO, GAME_OVER } GameState;
 typedef struct Game {
-  GameState game_state;
+  GameState gameState;
   Level *level;
   Player **players;
-  size_t player_count;
+  size_t playerCount;
   bool running;
 } Game;
 

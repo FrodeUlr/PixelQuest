@@ -19,28 +19,29 @@ typedef struct Player {
   char *name;
   Color color;
   Vector2 position;
-  PlayerType player_type;
+  PlayerType playerType;
   PlayerKey keys;
   float speed;
   float acceleration;
-  float max_speed;
+  float maxSpeed;
   float radius;
   float mass;
   char number;
 } Player;
 
-void generate_player(Player *player, char *name, PlayerType player_type,
-                     float x, float y, Color color);
+void generate_player(Player *player, char *name, PlayerType playerType, float x,
+                     float y, Color color);
 void SetPlayerKeys(Player *player);
-void render_players(Player *players[], size_t player_count, Level *level);
+void render_players(Player *players[], size_t playerCount, Level *level);
 
-void update_position(Player *players[], int plaer_count, Level *level);
+void update_position(Player *players[], int plaerCount, Level *level);
 
 void two_player_collision(Player *player1, Player *player2, Level *level);
+void players_collision(Player *players[], int playerCount, Level *level);
 bool collides_with_level(float x, float y, float radius, Level *level);
 bool is_blocked(char tile);
 
 bool check_level_completion(Player *players[], Level *level,
-                            size_t player_count);
+                            size_t playerCount);
 
 #endif

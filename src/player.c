@@ -2,39 +2,39 @@
 #include <math.h>
 #include <stdio.h>
 
-void generate_player(Player *player, char *name, PlayerType player_type,
-                     float x, float y, Color color) {
+void generate_player(Player *player, char *name, PlayerType playerType, float x,
+                     float y, Color color) {
   player->name = name;
-  player->player_type = player_type;
+  player->playerType = playerType;
   player->position = (Vector2){x, y};
   player->speed = PLAYER_START_SPEED;
   player->acceleration = PLAYER_START_ACCELERATION;
-  player->max_speed = PLAYER_MAX_SPEED;
+  player->maxSpeed = PLAYER_MAX_SPEED;
   player->radius = PLAYER_RADIUS;
   player->color = color;
   player->mass = PLAYER_MASS;
   SetPlayerKeys(player);
-  player->number = (player_type == PLAYER_ONE) ? '1' : '2';
+  player->number = (playerType == PLAYER_ONE) ? '1' : '2';
 }
 
 void SetPlayerKeys(Player *player) {
-  if (player->player_type == PLAYER_ONE) {
-    player->keys.left = KEY_LEFT;
-    player->keys.right = KEY_RIGHT;
-    player->keys.up = KEY_UP;
-    player->keys.down = KEY_DOWN;
-    player->keys.jump = KEY_SPACE;
-  } else if (player->player_type == PLAYER_TWO) {
+  if (player->playerType == PLAYER_ONE) {
     player->keys.left = KEY_A;
     player->keys.right = KEY_D;
     player->keys.up = KEY_W;
     player->keys.down = KEY_S;
     player->keys.jump = KEY_LEFT_SHIFT;
+  } else if (player->playerType == PLAYER_TWO) {
+    player->keys.left = KEY_LEFT;
+    player->keys.right = KEY_RIGHT;
+    player->keys.up = KEY_UP;
+    player->keys.down = KEY_DOWN;
+    player->keys.jump = KEY_SPACE;
   }
 }
 
-void update_position(Player *players[], int player_count, Level *level) {
-  for (int i = 0; i < player_count; i++) {
+void update_position(Player *players[], int playerCount, Level *level) {
+  for (int i = 0; i < playerCount; i++) {
     float new_x = players[i]->position.x;
     float new_y = players[i]->position.y;
     float radius = players[i]->radius;
@@ -50,7 +50,7 @@ void update_position(Player *players[], int player_count, Level *level) {
 
     if (IsKeyDown(players[i]->keys.right) || IsKeyDown(players[i]->keys.left) ||
         IsKeyDown(players[i]->keys.up) || IsKeyDown(players[i]->keys.down)) {
-      if (players[i]->speed < players[i]->max_speed) {
+      if (players[i]->speed < players[i]->maxSpeed) {
         players[i]->acceleration += 0.1f;
         players[i]->speed += players[i]->acceleration;
       }
@@ -60,15 +60,12 @@ void update_position(Player *players[], int player_count, Level *level) {
     }
 
     // Convert position to tile coordinates, accounting for scaling and offset
-    int left_tile =
-        (int)((new_x - radius - level->offset_x) / level->tile_size);
-    int right_tile =
-        (int)((new_x + radius - level->offset_x) / level->tile_size);
-    int top_tile = (int)((players[i]->position.y - radius - level->offset_y) /
-                         level->tile_size);
-    int bottom_tile =
-        (int)((players[i]->position.y + radius - level->offset_y) /
-              level->tile_size);
+    int left_tile = (int)((new_x - radius - level->offsetX) / level->tileSize);
+    int right_tile = (int)((new_x + radius - level->offsetX) / level->tileSize);
+    int top_tile = (int)((players[i]->position.y - radius - level->offsetY) /
+                         level->tileSize);
+    int bottom_tile = (int)((players[i]->position.y + radius - level->offsetY) /
+                            level->tileSize);
 
     // Clamp tile indices
     left_tile =
@@ -94,12 +91,12 @@ void update_position(Player *players[], int player_count, Level *level) {
       players[i]->position.x = new_x;
     }
 
-    left_tile = (int)((players[i]->position.x - radius - level->offset_x) /
-                      level->tile_size);
-    right_tile = (int)((players[i]->position.x + radius - level->offset_x) /
-                       level->tile_size);
-    top_tile = (int)((new_y - radius - level->offset_y) / level->tile_size);
-    bottom_tile = (int)((new_y + radius - level->offset_y) / level->tile_size);
+    left_tile = (int)((players[i]->position.x - radius - level->offsetX) /
+                      level->tileSize);
+    right_tile = (int)((players[i]->position.x + radius - level->offsetX) /
+                       level->tileSize);
+    top_tile = (int)((new_y - radius - level->offsetY) / level->tileSize);
+    bottom_tile = (int)((new_y + radius - level->offsetY) / level->tileSize);
 
     left_tile =
         left_tile < 0
@@ -179,13 +176,21 @@ void two_player_collision(Player *p1, Player *p2, Level *level) {
     p2->position.y = p2_y.y;
 }
 
+void players_collision(Player *players[], int player_count, Level *level) {
+  for (int i = 0; i < player_count; i++) {
+    for (int j = i + 1; j < player_count; j++) {
+      two_player_collision(players[i], players[j], level);
+    }
+  }
+}
+
 bool is_blocked(char c) { return c == '#' || c == '@'; }
 
 bool collides_with_level(float x, float y, float radius, Level *level) {
-  int left_tile = (int)((x - radius - level->offset_x) / level->tile_size);
-  int right_tile = (int)((x + radius - level->offset_x) / level->tile_size);
-  int top_tile = (int)((y - radius - level->offset_y) / level->tile_size);
-  int bottom_tile = (int)((y + radius - level->offset_y) / level->tile_size);
+  int left_tile = (int)((x - radius - level->offsetX) / level->tileSize);
+  int right_tile = (int)((x + radius - level->offsetX) / level->tileSize);
+  int top_tile = (int)((y - radius - level->offsetY) / level->tileSize);
+  int bottom_tile = (int)((y + radius - level->offsetY) / level->tileSize);
 
   // Clamp
   if (left_tile < 0)
@@ -207,17 +212,17 @@ bool collides_with_level(float x, float y, float radius, Level *level) {
   return false;
 }
 
-void render_players(Player *players[], size_t player_count, Level *level) {
-  for (size_t i = 0; i < player_count; i++) {
-    if (level->first_frame) {
+void render_players(Player *players[], size_t playerCount, Level *level) {
+  for (size_t i = 0; i < playerCount; i++) {
+    if (level->firstFrame) {
       for (int y = 0; y < level->rows; y++) {
         for (int x = 0; x < level->columns; x++) {
           if (level->data[y][x] == players[i]->number) {
-            players[i]->position.x = x * level->tile_size + level->offset_x +
-                                     (float)level->tile_size / 2;
-            players[i]->position.y = y * level->tile_size + level->offset_y +
-                                     (float)level->tile_size / 2;
-            players[i]->radius = (float)level->tile_size / 2;
+            players[i]->position.x = x * level->tileSize + level->offsetX +
+                                     (float)level->tileSize / 2;
+            players[i]->position.y = y * level->tileSize + level->offsetY +
+                                     (float)level->tileSize / 2;
+            players[i]->radius = (float)level->tileSize / 3;
             break;
           }
         }
@@ -232,12 +237,12 @@ void render_players(Player *players[], size_t player_count, Level *level) {
 }
 
 bool check_level_completion(Player *players[], Level *level,
-                            size_t player_count) {
-  for (int i = 0; i < player_count; i++) {
+                            size_t playerCount) {
+  for (int i = 0; i < playerCount; i++) {
     int player_tile_x =
-        (int)((players[i]->position.x - level->offset_x) / level->tile_size);
+        (int)((players[i]->position.x - level->offsetX) / level->tileSize);
     int player_tile_y =
-        (int)((players[i]->position.y - level->offset_y) / level->tile_size);
+        (int)((players[i]->position.y - level->offsetY) / level->tileSize);
 
     if (level->data[player_tile_y][player_tile_x] == 'O') {
       return true;

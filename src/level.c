@@ -10,30 +10,30 @@ void set_offset(Level *level) {
   int screen_height = GetScreenHeight();
   int tile_w = screen_width / level->columns;
   int tile_h = screen_height / level->rows;
-  level->tile_size = tile_w < tile_h ? tile_w : tile_h;
+  level->tileSize = tile_w < tile_h ? tile_w : tile_h;
 
-  int level_pixel_width = level->tile_size * level->columns;
-  int level_pixel_height = level->tile_size * level->rows;
-  level->offset_x = (screen_width - level_pixel_width) / 2;
-  level->offset_y = (screen_height - level_pixel_height) / 2;
+  int level_pixel_width = level->tileSize * level->columns;
+  int level_pixel_height = level->tileSize * level->rows;
+  level->offsetX = (screen_width - level_pixel_width) / 2;
+  level->offsetY = (screen_height - level_pixel_height) / 2;
 }
 
-char *get_absolute_path(const char *relative_path) {
-  if (relative_path == NULL) {
+char *get_absolute_path(const char *relativePath) {
+  if (relativePath == NULL) {
     return NULL;
   }
-  if (strcmp(relative_path, "") == 0) {
+  if (strcmp(relativePath, "") == 0) {
     return "";
   }
-  if (strncmp(relative_path, "../", 3) == 0) {
-    relative_path += 3;
+  if (strncmp(relativePath, "../", 3) == 0) {
+    relativePath += 3;
   }
   static char absolute_path[PATH_MAX];
   if (EXECUTABLE_PATH != NULL) {
     snprintf(absolute_path, sizeof(absolute_path), "%s/%s", EXECUTABLE_PATH,
-             relative_path);
+             relativePath);
   } else {
-    snprintf(absolute_path, sizeof(absolute_path), "%s", relative_path);
+    snprintf(absolute_path, sizeof(absolute_path), "%s", relativePath);
   }
   printf("Resolved absolute path: %s\n", absolute_path);
   return absolute_path;
@@ -41,43 +41,47 @@ char *get_absolute_path(const char *relative_path) {
 
 void set_level(Level *level, int number) {
   const char **level_data = NULL;
-  level->target_texture =
+  level->targetTexture =
       SetTextureDef("Target_Tile", 0, 16, 0, 16,
                     get_absolute_path("../art/Outdoor decoration/Chest.png"));
-  level->house_texture = SetTextureDef(
+  level->houseTexture = SetTextureDef(
       "House_Tile", 0, 96, 0, 128,
       get_absolute_path(
           "../art/Outdoor decoration/House_1_Wood_Base_Blue.png"));
-  level->water_texture =
+  level->waterTexture =
       SetTextureDef("Water_Tile", 0, 48, 0, 48,
                     get_absolute_path("../art/Tiles/Water_Middle.png"));
   int height = 0;
   switch (number) {
   case 1: {
     static const char *data[] = {
-        "######################################",
-        "#....................................#",
-        "#.....#..............................#",
-        "#.....#..............................#",
-        "#.....#.......................2......#",
-        "#.....#..............................#",
-        "#..1.................................#",
-        "#...............O....................#",
-        "#....................................#",
-        "#........@...........................#",
-        "#....................................#",
-        "#.....####...........................#",
-        "#....................................#",
-        "#....................................#",
-        "######################################",
+        "##########################################",
+        "#........................................#",
+        "#.....#..................................#",
+        "#.....#..................................#",
+        "#.....#...........................2......#",
+        "#.....#..................................#",
+        "#..1.....................................#",
+        "#...............O........................#",
+        "#........................................#",
+        "#........................................#",
+        "#........................................#",
+        "#........................................#",
+        "#........................................#",
+        "#........@...............................#",
+        "#........................................#",
+        "#.....####...............................#",
+        "#........................................#",
+        "#........................................#",
+        "##########################################",
     };
 
     height = sizeof(data) / sizeof(data[0]);
     level->data = data;
-    level->wall_texture =
+    level->wallTexture =
         SetTextureDef("Stone_Tile", 0, 48, 0, 48,
                       get_absolute_path("../art/Tiles/FarmLand_Tile.png"));
-    level->ground_texture =
+    level->groundTexture =
         SetTextureDef("Ground_Tile", 0, 48, 0, 48,
                       get_absolute_path("../art/Tiles/Grass_Middle.png"));
     break;
@@ -92,23 +96,27 @@ void set_level(Level *level, int number) {
         "#........................................#",
         "#........................................#",
         "#........................................#",
-        "#...................O....................#",
         "#........................................#",
         "#........................................#",
-        "#.....1..................................#",
         "#........................................#",
+        "#........................................#",
+        "#...................O..........#.........#",
+        "#..............................##........#",
+        "#.############.................#.........#",
+        "#.....1........................#.........#",
+        "#..............................#.........#",
         "#........................................#",
         "##########################################",
     };
     height = sizeof(data) / sizeof(data[0]);
     level->data = data;
-    level->wall_texture =
+    level->wallTexture =
         SetTextureDef("Stone_Tile", 0, 48, 0, 48,
                       get_absolute_path("../art/Tiles/Cliff_Tile.png"));
-    level->ground_texture =
+    level->groundTexture =
         SetTextureDef("Ground_Tile", 0, 48, 0, 48,
                       get_absolute_path("../art/Tiles/Path_Middle.png"));
-    level->first_frame = true;
+    level->firstFrame = true;
     break;
   }
   }
@@ -119,13 +127,13 @@ void set_level(Level *level, int number) {
   set_offset(level);
 }
 
-void DrawTextureForGame(Level *level, TextureDef tdef, int x_dest, int y_dest,
-                        float custom_scale) {
-  float scale = level->tile_size / (float)tdef.end_x * custom_scale;
-  Rectangle source = {tdef.start_x, tdef.start_y, tdef.end_x, tdef.end_y};
-  Rectangle dest = {x_dest * level->tile_size + level->offset_x,
-                    y_dest * level->tile_size + level->offset_y,
-                    tdef.end_x * scale, tdef.end_y * scale};
+void DrawTextureForGame(Level *level, TextureDef tdef, int xDest, int yDest,
+                        float customScale) {
+  float scale = level->tileSize / (float)tdef.endX * customScale;
+  Rectangle source = {tdef.startX, tdef.startY, tdef.endX, tdef.endY};
+  Rectangle dest = {xDest * level->tileSize + level->offsetX,
+                    yDest * level->tileSize + level->offsetY, tdef.endX * scale,
+                    tdef.endY * scale};
   Vector2 origin = {0, 0}; // Top-left corner
   float rotation = 0.0f;
   DrawTexturePro(tdef.texture, source, dest, origin, rotation, WHITE);
@@ -169,21 +177,21 @@ void render_level(Level *level) {
         break;
       }
       if (tile_type == TARGET) {
-        DrawTextureForGame(level, level->ground_texture, x, y, 1);
-        DrawTextureForGame(level, level->target_texture, x, y, 1);
+        DrawTextureForGame(level, level->groundTexture, x, y, 1);
+        DrawTextureForGame(level, level->targetTexture, x, y, 1);
       } else if (tile_type == WALL) {
-        DrawTextureForGame(level, level->wall_texture, x, y, 1);
+        DrawTextureForGame(level, level->wallTexture, x, y, 1);
       } else if (tile_type == GROUND) {
-        DrawTextureForGame(level, level->ground_texture, x, y, 1);
+        DrawTextureForGame(level, level->groundTexture, x, y, 1);
       } else if (tile_type == PLAYER) {
-        DrawTextureForGame(level, level->ground_texture, x, y, 1);
+        DrawTextureForGame(level, level->groundTexture, x, y, 1);
       } else if (tile_type == WATER) {
-        DrawTextureForGame(level, level->water_texture, x, y, 1);
+        DrawTextureForGame(level, level->waterTexture, x, y, 1);
       } else if (tile_type == HOUSE) {
-        DrawTextureForGame(level, level->ground_texture, x, y, 1);
-        DrawTextureForGame(level, level->house_texture, x, y, 1);
+        DrawTextureForGame(level, level->groundTexture, x, y, 1);
+        DrawTextureForGame(level, level->houseTexture, x, y, 1);
       } else {
-        DrawTextureForGame(level, level->ground_texture, x, y, 1);
+        DrawTextureForGame(level, level->groundTexture, x, y, 1);
       }
     }
   }

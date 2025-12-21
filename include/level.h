@@ -8,17 +8,17 @@ typedef struct Level {
   int number;
   int columns;
   int rows;
-  int offset_x;
-  int offset_y;
-  int tile_size;
-  bool first_frame;
+  int offsetX;
+  int offsetY;
+  int tileSize;
+  bool firstFrame;
   const char **data;
   bool completed;
-  TextureDef wall_texture;
-  TextureDef ground_texture;
-  TextureDef target_texture;
-  TextureDef house_texture;
-  TextureDef water_texture;
+  TextureDef wallTexture;
+  TextureDef groundTexture;
+  TextureDef targetTexture;
+  TextureDef houseTexture;
+  TextureDef waterTexture;
 } Level;
 
 typedef enum { WALL, TARGET, WATER, GROUND, HOUSE, PLAYER } TILE_TYPE;
