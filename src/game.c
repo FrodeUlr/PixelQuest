@@ -1,6 +1,5 @@
 #include "../include/game.h"
 #include "../include/menu.h"
-#include "../include/player.h"
 #include "../include/raylib.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,13 +20,10 @@ void start_game(Game *game, Config *config) {
   const int screen_height = GetScreenHeight();
   const int half_screen_width = screen_width / 2;
   const int half_screen_height = screen_height / 2;
-  Player player_one = {0};
-  Player player_two = {0};
-  Player *players[] = {&player_one, &player_two};
-  size_t player_count = sizeof(players) / sizeof(players[0]);
   SetTargetFPS(config->targetFPS);
-  Level *level;
-  level = malloc(sizeof(Level));
+  Level *level = malloc(sizeof(Level));
+  game->level = level;
+  initialize_players(game, 2);
   printf("Entering main game loop\n");
   Menu *menu = malloc(sizeof(Menu));
   if (menu == NULL) {
@@ -45,12 +41,10 @@ void start_game(Game *game, Config *config) {
         game->running = false;
       } else if (game->game_state != MAIN_MENU && menu->player1NameLen != 0 &&
                  menu->player2NameLen != 0) {
-        *players[0] =
-            generate_player(menu->player1Name, PLAYER_ONE, screen_width * 0.9f,
-                            screen_height * 0.7f, PINK);
-        *players[1] =
-            generate_player(menu->player2Name, PLAYER_TWO, screen_width * 0.1f,
-                            screen_height * 0.3f, VIOLET);
+        generate_player(game->players[0], menu->player1Name, PLAYER_ONE,
+                        screen_width * 0.9f, screen_height * 0.7f, PINK);
+        generate_player(game->players[1], menu->player2Name, PLAYER_TWO,
+                        screen_width * 0.1f, screen_height * 0.3f, VIOLET);
       } else {
         game->game_state = MAIN_MENU;
       }
@@ -66,7 +60,8 @@ void start_game(Game *game, Config *config) {
           set_level(level, 1);
           level->first_frame = true;
         }
-        if (check_level_completion(players, level, player_count)) {
+        if (check_level_completion(game->players, game->level,
+                                   game->player_count)) {
           game->game_state = LEVEL_TWO;
         }
       }
@@ -75,17 +70,18 @@ void start_game(Game *game, Config *config) {
           set_level(level, 2);
           level->first_frame = true;
         }
-        if (check_level_completion(players, level, player_count)) {
+        if (check_level_completion(game->players, game->level,
+                                   game->player_count)) {
           game->game_state = GAME_OVER;
         }
       }
       ClearBackground(BLACK);
       render_level(level);
-      update_position(players, player_count, level);
-      two_player_collision(&player_one, &player_two, level);
+      update_position(game->players, game->player_count, level);
+      two_player_collision(game->players[0], game->players[1], level);
 
-      render_players(players, player_count, level);
-      draw_ui(players, player_count, screen_width, screen_height);
+      render_players(game->players, game->player_count, level);
+      draw_ui(game->players, game->player_count, screen_width, screen_height);
       if (level->first_frame) {
         level->first_frame = false;
       }
@@ -93,12 +89,21 @@ void start_game(Game *game, Config *config) {
     }
     EndDrawing();
   }
-  if (level != NULL) {
-    UnloadTexture(level->wall_texture.texture);
-    UnloadTexture(level->ground_texture.texture);
-    UnloadTexture(level->target_texture.texture);
-    UnloadTexture(level->house_texture.texture);
-    free(level);
+  for (size_t i = 0; i < game->player_count; i++) {
+    if (game->players[i] != NULL) {
+      printf("cleaning player %zu\n", i);
+      free(game->players[i]);
+    }
+  }
+  if (game->players != NULL) {
+    free(game->players);
+  }
+  if (game->level != NULL) {
+    UnloadTexture(game->level->wall_texture.texture);
+    UnloadTexture(game->level->ground_texture.texture);
+    UnloadTexture(game->level->target_texture.texture);
+    UnloadTexture(game->level->house_texture.texture);
+    free(game->level);
   }
   if (menu != NULL) {
     free(menu);
@@ -119,4 +124,12 @@ void draw_ui(Player *players[], int player_count, int screen_width,
   }
   DrawText(fpsText, 0, 0, 20, WHITE);
   DrawText(screenInfo, 0, 20, 20, WHITE);
+}
+
+void initialize_players(Game *game, int player_count) {
+  game->player_count = player_count;
+  game->players = malloc(sizeof(Player *) * game->player_count);
+  for (int i = 0; i < player_count; i++) {
+    game->players[i] = malloc(sizeof(Player));
+  }
 }

@@ -2,21 +2,19 @@
 #include <math.h>
 #include <stdio.h>
 
-Player generate_player(char *name, PlayerType player_type, float x, float y,
-                       Color color) {
-  Player player;
-  player.name = name;
-  player.player_type = player_type;
-  player.position = (Vector2){x, y};
-  player.speed = PLAYER_START_SPEED;
-  player.acceleration = PLAYER_START_ACCELERATION;
-  player.max_speed = PLAYER_MAX_SPEED;
-  player.radius = PLAYER_RADIUS;
-  player.color = color;
-  player.mass = PLAYER_MASS;
-  SetPlayerKeys(&player);
-  player.number = (player_type == PLAYER_ONE) ? '1' : '2';
-  return player;
+void generate_player(Player *player, char *name, PlayerType player_type,
+                     float x, float y, Color color) {
+  player->name = name;
+  player->player_type = player_type;
+  player->position = (Vector2){x, y};
+  player->speed = PLAYER_START_SPEED;
+  player->acceleration = PLAYER_START_ACCELERATION;
+  player->max_speed = PLAYER_MAX_SPEED;
+  player->radius = PLAYER_RADIUS;
+  player->color = color;
+  player->mass = PLAYER_MASS;
+  SetPlayerKeys(player);
+  player->number = (player_type == PLAYER_ONE) ? '1' : '2';
 }
 
 void SetPlayerKeys(Player *player) {
@@ -233,13 +231,13 @@ void render_players(Player *players[], size_t player_count, Level *level) {
   }
 }
 
-bool check_level_completion(Player *player[], Level *level,
+bool check_level_completion(Player *players[], Level *level,
                             size_t player_count) {
   for (int i = 0; i < player_count; i++) {
     int player_tile_x =
-        (int)((player[i]->position.x - level->offset_x) / level->tile_size);
+        (int)((players[i]->position.x - level->offset_x) / level->tile_size);
     int player_tile_y =
-        (int)((player[i]->position.y - level->offset_y) / level->tile_size);
+        (int)((players[i]->position.y - level->offset_y) / level->tile_size);
 
     if (level->data[player_tile_y][player_tile_x] == 'O') {
       return true;

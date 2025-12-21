@@ -29,8 +29,8 @@ typedef struct Player {
   char number;
 } Player;
 
-Player generate_player(char *name, PlayerType player_type, float x, float y,
-                       Color color);
+void generate_player(Player *player, char *name, PlayerType player_type,
+                     float x, float y, Color color);
 void SetPlayerKeys(Player *player);
 void render_players(Player *players[], size_t player_count, Level *level);
 
@@ -40,7 +40,7 @@ void two_player_collision(Player *player1, Player *player2, Level *level);
 bool collides_with_level(float x, float y, float radius, Level *level);
 bool is_blocked(char tile);
 
-bool check_level_completion(Player *player[], Level *level,
+bool check_level_completion(Player *players[], Level *level,
                             size_t player_count);
 
 #endif
