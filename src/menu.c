@@ -9,8 +9,8 @@ const MenuButton menu_buttons[] = {
 
 void generate_player_field(Menu *menu) {
   for (int i = 0; i < menu->playerCount; i++) {
-    int halfScreenWidth = menu->screenWidth / 2;
-    int halfScreenHeight = menu->screenHeight / 2;
+    int halfScreenWidth = GetScreenWidth() / 2;
+    int halfScreenHeight = GetScreenHeight() / 2;
     menu->players[i] = malloc(sizeof(PlayerDetails));
     menu->players[i]->name[0] = '\0';
     menu->players[i]->nameLen = 0;
@@ -26,8 +26,8 @@ void generate_button_fields(Menu *menu) {
     menu->buttons[i] = malloc(sizeof(Button));
     menu->buttons[i]->text = menu_buttons[i].label;
     menu->buttons[i]->rec =
-        (Rectangle){((float)menu->screenWidth / 2) - 100,
-                    ((float)menu->screenHeight / 2) + (i * 60), 200, 40};
+        (Rectangle){((float)GetScreenWidth() / 2) - 100,
+                    ((float)GetScreenHeight() / 2) + (i * 60), 200, 40};
     menu->buttons[i]->color = DARKGRAY;
     menu->buttons[i]->focusField = menu_buttons[i].focusField;
     menu->buttons[i]->action = menu_buttons[i].action;
@@ -38,8 +38,6 @@ void new_menu(Menu *menu, int playerCount) {
   menu->focusField = PLAYER1_NAME;
   menu->playerCount = playerCount;
   menu->buttonCount = sizeof(menu_buttons) / sizeof(menu_buttons[0]);
-  menu->screenWidth = GetScreenWidth();
-  menu->screenHeight = GetScreenHeight();
   menu->players = malloc(sizeof(PlayerDetails *) * playerCount);
   menu->buttons = malloc(sizeof(Button *) * menu->buttonCount);
   generate_player_field(menu);
@@ -49,10 +47,13 @@ void new_menu(Menu *menu, int playerCount) {
 void draw_player_name_input(Rectangle rec, const char *label,
                             const char *playerName, Color focusColor,
                             Color textColor) {
-  DrawText(label, rec.x + 20, rec.y - 20, 20, focusColor);
+  DrawText(label, rec.x + (rec.width / 2) - ((float)MeasureText(label, 20) / 2),
+           rec.y - 20, 20, focusColor);
   DrawRectangleLinesEx(rec, 8.0f, focusColor);
   DrawRectangle(rec.x + 2, rec.y + 2, rec.width - 4, rec.height - 4, LIGHTGRAY);
-  DrawText(playerName, rec.x + 10, rec.y + 10, 20, textColor);
+  DrawText(playerName,
+           rec.x + (rec.width / 2) - ((float)MeasureText(playerName, 20) / 2),
+           rec.y + 10, 20, textColor);
 }
 
 bool handle_menu_button(Rectangle rect, Color *color, Color hoverColor,
@@ -71,8 +72,8 @@ bool handle_menu_button(Rectangle rect, Color *color, Color hoverColor,
 }
 
 void draw_main_menu(Menu *menu, Game *game) {
-  int halfScreenWidth = menu->screenWidth / 2;
-  int halfScreenHeight = menu->screenHeight / 2;
+  int halfScreenWidth = GetScreenWidth() / 2;
+  int halfScreenHeight = GetScreenHeight() / 2;
   for (int i = 0; i < menu->playerCount; i++) {
     char label[20];
     snprintf(label, 20, "Player %d name:", i + 1);

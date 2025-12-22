@@ -37,8 +37,6 @@ typedef struct Button {
 
 typedef struct Menu {
   FocusField focusField;
-  int screenWidth;
-  int screenHeight;
   int playerCount;
   int buttonCount;
   PlayerDetails **players;

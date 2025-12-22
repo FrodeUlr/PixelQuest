@@ -286,14 +286,15 @@ bool collides_with_level(float x, float y, float radius, Level *level) {
 
 void draw_player_texture(Level *level, TextureDef tdef, float x, float y,
                          float customScale, Player *player, bool flip) {
-  float scale = level->tileSize / (float)tdef.endX * customScale;
-  Rectangle source = {tdef.startX, tdef.startY, tdef.endX, tdef.endY};
+  float width = tdef.endX - tdef.startX;
+  float height = tdef.endY - tdef.startY;
+  float scale = level->tileSize / ((float)tdef.endX) * customScale;
+  Rectangle source = {tdef.startX, tdef.startY, width, height};
   if (flip) {
-    source.x += tdef.endX;     // Move to the right edge
-    source.width = -tdef.endX; // Negative width flips horizontally
+    source.width = -(width); // Negative width flips horizontally
   }
-  Rectangle dest = {x - (tdef.endX * scale) / 2, y - (tdef.endY * scale) / 2,
-                    tdef.endX * scale, tdef.endY * scale};
+  Rectangle dest = {x - (width * scale) / 2, y - (height * scale) / 2,
+                    width * scale, height * scale};
   Vector2 origin = {0, 0};
   float rotation = 0.0f;
   DrawTexturePro(tdef.texture, source, dest, origin, rotation, player->color);
@@ -319,8 +320,15 @@ void render_players(Player *players[], size_t playerCount, Level *level) {
     float middle_x = players[i]->position.x - name_size / 2;
     DrawText(players[i]->name, middle_x,
              players[i]->position.y - players[i]->radius - 25, 20, WHITE);
-    draw_player_texture(level, players[i]->idle, players[i]->position.x,
-                        players[i]->position.y, 1.0f, players[i], false);
+    if (players[i]->velocity.x > 0.1f) {
+      draw_player_texture(level, players[i]->run, players[i]->position.x,
+                          players[i]->position.y, 1.0f, players[i], false);
+    } else if (players[i]->velocity.x < -0.1f) {
+      draw_player_texture(level, players[i]->run, players[i]->position.x,
+                          players[i]->position.y, 1.0f, players[i], true);
+    } else
+      draw_player_texture(level, players[i]->idle, players[i]->position.x,
+                          players[i]->position.y, 1.0f, players[i], false);
   }
 }
 
