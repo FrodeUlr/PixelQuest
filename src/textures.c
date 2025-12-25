@@ -1,4 +1,4 @@
-#include "../include/textures.h"
+#include "textures.h"
 
 TextureDef SetTextureDef(const char *name, int startX, int endX, int startY,
                          int endY, char *texturePath) {

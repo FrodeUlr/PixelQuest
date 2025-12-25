@@ -1,17 +1,7 @@
 #ifndef MENU_H
 #define MENU_H
 #include "../include/game.h"
-#include "../include/player.h"
-#include "../include/raylib.h"
 #include <stdbool.h>
-
-typedef enum FocusField {
-  PLAYER1_NAME,
-  PLAYER2_NAME,
-  START_BUTTON,
-  EXIT_BUTTON,
-  FOCUS_FIELD_COUNT
-} FocusField;
 
 typedef struct {
   const char *label;

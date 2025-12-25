@@ -1,6 +1,6 @@
-#include "../include/game.h"
-#include "../include/menu.h"
-#include "../include/raylib.h"
+#include "game.h"
+#include "external/raylib.h"
+#include "menu.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -25,7 +25,7 @@ void start_game(Game *game, Config *config) {
   } else {
     SetTargetFPS(60);
   }
-  Level *level = malloc(sizeof(Level));
+  struct Level *level = malloc(sizeof(Level));
   game->level = level;
   initialize_players(game, 2);
   printf("Entering main game loop\n");
@@ -115,14 +115,15 @@ void draw_ui(Player *players[], int playerCount, int screenWidth,
   DrawText(screenInfo, 0, 20, 20, WHITE);
   for (size_t i = 0; i < playerCount; i++) {
     const char *position_text =
-        TextFormat("%s Pos: (%.2f, %.2f)", players[i]->name,
+        TextFormat("%s\tPos: (%.2f, %.2f). ", players[i]->name,
                    players[i]->position.x, players[i]->position.y);
     const char *player_speeds = TextFormat(
         "Speed: x->%.2f y->%.2f Accel: x->%.2f y->%.2f", players[i]->velocity.x,
         players[i]->velocity.y, players[i]->accelerationVector.x,
         players[i]->accelerationVector.y);
-    DrawText(position_text, 0, 40 + i * 20, 20, WHITE);
-    DrawText(player_speeds, 300, 40 + i * 20, 20, WHITE);
+    int text_width = MeasureText(position_text, 20);
+    DrawText(position_text, screenWidth / 2, i * 20, 20, WHITE);
+    DrawText(player_speeds, (screenWidth / 2) + text_width, i * 20, 20, WHITE);
   }
 }
 

@@ -1,6 +1,6 @@
 #ifndef LEVELS_H
 #define LEVELS_H
-#include "raylib.h"
+#include "gametypes.h"
 #include "textures.h"
 #include <stdbool.h>
 
@@ -12,16 +12,15 @@ typedef struct Level {
   int offsetY;
   int tileSize;
   bool firstFrame;
-  const char **data;
+  char **data;
   bool completed;
+  GameState nextState;
   TextureDef wallTexture;
   TextureDef groundTexture;
   TextureDef targetTexture;
   TextureDef houseTexture;
   TextureDef waterTexture;
 } Level;
-
-typedef enum { WALL, TARGET, WATER, GROUND, HOUSE, PLAYER } TILE_TYPE;
 
 void render_level(Level *level);
 void set_offset(Level *level);

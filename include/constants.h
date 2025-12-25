@@ -8,5 +8,7 @@
 #define PLAYER_ACCELERATION 0.1f;
 #define PLAYER_MAX_ACCELERATION 1.2f;
 #define PLAYER_MASS 1.0f;
+#define MAX_LEVEL_WIDTH 256
+#define MAX_LEVEL_HEIGHT 256
 
 #endif

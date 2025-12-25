@@ -13,11 +13,13 @@ all: build run
 build:
 	@mkdir -p bin
 	@cp -r art bin/
+	@cp -r levels bin/
 	$(CC) -o $(OUT) $(INCLUDES) $(SRC) $(LIBS)
 
 debug:
 	@mkdir -p bin
 	@cp -r art bin/
+	@cp -r levels bin/
 	$(CC) -g -o $(OUT) $(INCLUDES) $(SRC) $(LIBS)
 
 run:

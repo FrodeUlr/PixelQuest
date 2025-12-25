@@ -1,6 +1,6 @@
 #ifndef TEXTURES_H
 #define TEXTURES_H
-#include "raylib.h"
+#include "external/raylib.h"
 
 typedef struct TextureDef {
   const char *name;
@@ -28,4 +28,4 @@ TextureDef SetTextureDef(const char *name, int startX, int endX, int startY,
 AnimationFrame SetAnimationFrame(Texture2D texture, int maxFramesW,
                                  int maxFramesH, int startX, int startY);
 
-#endif // !DEBUG
+#endif

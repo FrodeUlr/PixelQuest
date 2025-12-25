@@ -1,13 +1,13 @@
 #ifndef GAME_H
 #define GAME_H
 #include "config.h"
-#include "level.h"
+#include "gametypes.h"
 #include "player.h"
 
-typedef enum { MAIN_MENU, EXIT, LEVEL_ONE, LEVEL_TWO, GAME_OVER } GameState;
+struct Level;
 typedef struct Game {
   GameState gameState;
-  Level *level;
+  struct Level *level;
   Player **players;
   size_t playerCount;
   bool running;

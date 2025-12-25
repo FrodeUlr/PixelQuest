@@ -1,8 +1,31 @@
-#include "../include/level.h"
-#include "../include/config.h"
-#include "../include/raylib.h"
+#include "level.h"
+#include "config.h"
+#include "constants.h"
+#include "external/raylib.h"
 #include <linux/limits.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+
+void load_level(Level *level, const char *filename) {
+  char buffer[MAX_LEVEL_WIDTH];
+
+  FILE *file = fopen(filename, "r");
+  if (file == NULL) {
+    perror("Failed to open level file");
+    return;
+  }
+  level->rows = 0;
+  level->data = malloc(sizeof(char *) * MAX_LEVEL_HEIGHT);
+  while (fgets(buffer, sizeof(buffer), file)) {
+    size_t len = strlen(buffer);
+    if (len > 0 && buffer[len - 1] == '\n') {
+      buffer[len - 1] = '\0';
+    }
+    level->data[level->rows] = strdup(buffer);
+    level->rows++;
+  }
+}
 
 void set_offset(Level *level) {
   int screen_width = GetScreenWidth();
@@ -32,30 +55,8 @@ void set_level(Level *level, int number) {
   int height = 0;
   switch (number) {
   case 1: {
-    static const char *data[] = {
-        "##########################################",
-        "#........................................#",
-        "#.....#..................................#",
-        "#.....#..................................#",
-        "#.....#...........................2......#",
-        "#.....#..................................#",
-        "#..1.....................................#",
-        "#...............O........................#",
-        "#........................................#",
-        "#........................................#",
-        "#........................................#",
-        "#........................................#",
-        "#........................................#",
-        "#........@...............................#",
-        "#........................................#",
-        "#.....####...............................#",
-        "#........................................#",
-        "#........................................#",
-        "##########################################",
-    };
-
-    height = sizeof(data) / sizeof(data[0]);
-    level->data = data;
+    load_level(level, get_absolute_path("../levels/01"));
+    // level->data = data;
     level->wallTexture =
         SetTextureDef("Stone_Tile", 0, 48, 0, 48,
                       get_absolute_path("../art/Tiles/FarmLand_Tile.png"));
@@ -65,29 +66,7 @@ void set_level(Level *level, int number) {
     break;
   }
   case 2: {
-    static const char *data[] = {
-        "##########################################",
-        "#........................................#",
-        "#........................................#",
-        "#..................................2.....#",
-        "#........................................#",
-        "#........................................#",
-        "#........................................#",
-        "#........................................#",
-        "#........................................#",
-        "#........................................#",
-        "#........................................#",
-        "#........................................#",
-        "#...................O..........#.........#",
-        "#..............................##........#",
-        "#.############.................#.........#",
-        "#.....1........................#.........#",
-        "#..............................#.........#",
-        "#........................................#",
-        "##########################################",
-    };
-    height = sizeof(data) / sizeof(data[0]);
-    level->data = data;
+    load_level(level, get_absolute_path("../levels/02"));
     level->wallTexture =
         SetTextureDef("Stone_Tile", 0, 48, 0, 48,
                       get_absolute_path("../art/Tiles/Cliff_Tile.png"));
@@ -101,7 +80,6 @@ void set_level(Level *level, int number) {
   level->number = number;
   level->completed = false;
   level->columns = level->data ? strlen(level->data[0]) : 0;
-  level->rows = height;
   set_offset(level);
 }
 

@@ -1,8 +1,7 @@
 #ifndef PLAYER_H
 #define PLAYER_H
-#include "constants.h"
+#include "external/raylib.h"
 #include "level.h"
-#include "raylib.h"
 #include "textures.h"
 #include <stddef.h>
 
@@ -13,8 +12,6 @@ typedef struct PlayerKey {
   KeyboardKey down;
   KeyboardKey jump;
 } PlayerKey;
-
-typedef enum { PLAYER_ONE, PLAYER_TWO } PlayerType;
 
 typedef struct Player {
   char *name;
@@ -39,15 +36,14 @@ void generate_player(Player *player, char *name, PlayerType playerType, float x,
 void set_player_keys(Player *player);
 void set_player_texture(Player *player);
 void render_players(Player *players[], size_t playerCount, Level *level);
-
 void update_position(Player *players[], int plaerCount, Level *level);
-
+void reset_player_movement(Player *player);
 void two_player_collision(Player *player1, Player *player2, Level *level);
 void players_collision(Player *players[], int playerCount, Level *level);
+
 bool collides_with_level(float x, float y, float radius, Level *level);
 bool is_blocked(char tile);
-
 bool check_level_completion(Player *players[], Level *level,
                             size_t playerCount);
-void reset_player_movement(Player *player);
+
 #endif

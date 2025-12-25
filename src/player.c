@@ -1,5 +1,6 @@
-#include "../include/player.h"
-#include "../include/config.h"
+#include "player.h"
+#include "config.h"
+#include "constants.h"
 #include <math.h>
 #include <stdio.h>
 
