@@ -19,6 +19,7 @@ void draw_ui(Player *players[], int player_count, int screen_width,
 void initialize_players(Game *game, int player_count);
 void free_game(Game *game);
 void set_camera(Game *game, int screen_width, int screen_height);
+void update_camera(Game *game);
 void draw_viewports(Rectangle *game_viewport, Game *game, struct Level *level);
 
 #endif

@@ -35,11 +35,13 @@ void start_game(Game *game, Config *config) {
     return;
   }
   new_menu(menu, 2);
+  int frame_counter = 0;
   Rectangle game_viewport =
       (Rectangle){0, 40, (float)screen_width, (float)screen_height - 40};
   Rectangle ui_divider =
       (Rectangle){(float)screen_width / 2 - 5, 40, 10.0f, screen_height - 40};
   while (game->running) {
+    frame_counter++;
     BeginDrawing();
     if (game->gameState == MAIN_MENU) {
       ClearBackground(RAYWHITE);
@@ -78,6 +80,8 @@ void start_game(Game *game, Config *config) {
                                    game->playerCount)) {
           game->gameState = LEVEL_TWO;
         }
+        if (check_kill_zone(game->players, game->level, game->playerCount)) {
+        }
       }
       if (game->gameState == LEVEL_TWO) {
         if (level->number != 2) {
@@ -95,10 +99,10 @@ void start_game(Game *game, Config *config) {
       if (level->cameras == NULL) {
         set_camera(game, screen_width, screen_height);
       }
-      level->cameras[0]->target =
-          (Vector2){game->players[0]->position.x, game->players[0]->position.y};
-      level->cameras[1]->target =
-          (Vector2){game->players[1]->position.x, game->players[1]->position.y};
+      if (frame_counter % 60 == 0) {
+        frame_counter = 0;
+      }
+      update_camera(game);
       update_position(game->players, game->playerCount, level);
       players_collision(game->players, game->playerCount, level);
       draw_viewports(&game_viewport, game, level);
@@ -157,6 +161,9 @@ void free_game(Game *game) {
       free(game->level->cameras[i]);
     }
   }
+  if (game->level->cameras != NULL) {
+    free(game->level->cameras);
+  }
   for (size_t i = 0; i < game->playerCount; i++) {
     if (game->players[i] != NULL) {
       free(game->players[i]);
@@ -183,7 +190,14 @@ void set_camera(Game *game, int screen_width, int screen_height) {
     game->level->cameras[i]->offset = (Vector2){
         (float)screen_width * (i == 0 ? 1 : 3) / 4, (float)screen_height / 2};
     game->level->cameras[i]->rotation = 0.0f;
-    game->level->cameras[i]->zoom = 1.0f;
+    game->level->cameras[i]->zoom = 1.6f;
+  }
+}
+
+void update_camera(Game *game) {
+  for (size_t i = 0; i < game->playerCount; i++) {
+    game->level->cameras[i]->target =
+        (Vector2){game->players[i]->position.x, game->players[i]->position.y};
   }
 }
 

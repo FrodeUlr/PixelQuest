@@ -312,6 +312,7 @@ void render_players(Player *players[], size_t playerCount, Level *level) {
             players[i]->position.y = y * level->tileSize + level->offsetY +
                                      (float)level->tileSize / 2;
             players[i]->radius = (float)level->tileSize / 3;
+            players[i]->startPosition = players[i]->position;
             break;
           }
         }
@@ -342,6 +343,21 @@ bool check_level_completion(Player *players[], Level *level,
         (int)((players[i]->position.y - level->offsetY) / level->tileSize);
 
     if (level->data[player_tile_y][player_tile_x] == 'O') {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool check_kill_zone(Player *players[], Level *level, size_t playerCount) {
+  for (int i = 0; i < playerCount; i++) {
+    int player_tile_x =
+        (int)((players[i]->position.x - level->offsetX) / level->tileSize);
+    int player_tile_y =
+        (int)((players[i]->position.y - level->offsetY) / level->tileSize);
+
+    if (level->data[player_tile_y][player_tile_x] == 'D') {
+      players[i]->position = players[i]->startPosition;
       return true;
     }
   }

@@ -16,6 +16,7 @@ typedef struct PlayerKey {
 typedef struct Player {
   char *name;
   Color color;
+  Vector2 startPosition;
   Vector2 position;
   PlayerType playerType;
   PlayerKey keys;
@@ -45,5 +46,6 @@ bool collides_with_level(float x, float y, float radius, Level *level);
 bool is_blocked(char tile);
 bool check_level_completion(Player *players[], Level *level,
                             size_t playerCount);
+bool check_kill_zone(Player *players[], Level *level, size_t playerCount);
 
 #endif

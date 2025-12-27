@@ -111,6 +111,7 @@ void render_level(Level *level) {
         tile_type = GROUND;
         break;
       case '@':
+      case 'D':
         color = BLUE;
         tile_type = WATER;
         break;
