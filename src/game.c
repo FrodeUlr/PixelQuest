@@ -27,7 +27,6 @@ void start_game(Game *game, Config *config) {
   }
   struct Level *level = malloc(sizeof(Level));
   game->level = level;
-  initialize_players(game, 2);
   printf("Entering main game loop\n");
   Menu *menu = malloc(sizeof(Menu));
   if (menu == NULL) {
@@ -38,8 +37,6 @@ void start_game(Game *game, Config *config) {
   int frame_counter = 0;
   Rectangle game_viewport =
       (Rectangle){0, 40, (float)screen_width, (float)screen_height - 40};
-  Rectangle ui_divider =
-      (Rectangle){(float)screen_width / 2 - 5, 40, 10.0f, screen_height - 40};
   while (game->running) {
     frame_counter++;
     BeginDrawing();
@@ -49,13 +46,8 @@ void start_game(Game *game, Config *config) {
       if (game->gameState == EXIT) {
         printf("Exiting game from main menu\n");
         game->running = false;
-      } else if (game->gameState != MAIN_MENU &&
-                 menu->players[0]->nameLen != 0 &&
-                 menu->players[1]->nameLen != 0) {
-        generate_player(game->players[0], menu->players[0]->name, PLAYER_ONE,
-                        screen_width * 0.9f, screen_height * 0.7f, RAYWHITE);
-        generate_player(game->players[1], menu->players[1]->name, PLAYER_TWO,
-                        screen_width * 0.1f, screen_height * 0.3f, BEIGE);
+      } else if (game->gameState != MAIN_MENU) {
+        initialize_players(game, menu);
       } else {
         game->gameState = MAIN_MENU;
       }
@@ -106,7 +98,6 @@ void start_game(Game *game, Config *config) {
       update_position(game->players, game->playerCount, level);
       players_collision(game->players, game->playerCount, level);
       draw_viewports(&game_viewport, game, level);
-      DrawRectangleRec(ui_divider, DARKGRAY);
       draw_ui(game->players, game->playerCount, screen_width, screen_height);
       if (level->firstFrame) {
         level->firstFrame = false;
@@ -147,11 +138,41 @@ void draw_ui(Player *players[], int playerCount, int screenWidth,
   EndScissorMode();
 }
 
-void initialize_players(Game *game, int player_count) {
-  game->playerCount = player_count;
-  game->players = malloc(sizeof(Player *) * game->playerCount);
-  for (int i = 0; i < player_count; i++) {
+void initialize_players(Game *game, Menu *menu) {
+  if (game->players != NULL && game->playerCount > 0) {
+    for (size_t i = 0; i < game->playerCount; i++) {
+      if (game->players[i] != NULL) {
+        game->players[i] = NULL;
+      }
+      if (game->level->cameras != NULL && game->level->cameras[i] != NULL) {
+        free(game->level->cameras[i]);
+      }
+    }
+    free(game->players);
+    game->players = NULL;
+    free(game->level->cameras);
+    game->level->cameras = NULL;
+    game->playerCount = 0;
+    game->firstPlayerSet = false;
+  }
+  for (int i = 0; i < 2; i++) {
+    if (menu->players[i]->nameLen != 0) {
+      if (i == 0) {
+        game->firstPlayerSet = true;
+      }
+      game->playerCount += 1;
+    }
+  }
+  if (game->players == NULL) {
+    game->players = malloc(sizeof(Player *) * game->playerCount);
+  }
+  for (int i = 0; i < game->playerCount; i++) {
+    printf("Generating player %d...\n", i + 1);
+    int ai = game->firstPlayerSet ? i : i + 1;
     game->players[i] = malloc(sizeof(Player));
+    generate_player(game->players[i], menu->players[ai]->name, ai,
+                    GetScreenWidth() * 0.9f, GetScreenHeight() * 0.7f,
+                    ai == 0 ? RAYWHITE : PINK);
   }
 }
 
@@ -183,12 +204,15 @@ void free_game(Game *game) {
 
 void set_camera(Game *game, int screen_width, int screen_height) {
   game->level->cameras = malloc(sizeof(Camera2D *) * game->playerCount);
+  bool single_player_mode = game->playerCount == 1;
   for (size_t i = 0; i < game->playerCount; i++) {
     game->level->cameras[i] = malloc(sizeof(Camera2D));
     game->level->cameras[i]->target =
-        (Vector2){game->players[0]->position.x, game->players[0]->position.y};
-    game->level->cameras[i]->offset = (Vector2){
-        (float)screen_width * (i == 0 ? 1 : 3) / 4, (float)screen_height / 2};
+        (Vector2){game->players[i]->position.x, game->players[i]->position.y};
+    float divisor = single_player_mode ? 2.0f : 4.0f;
+    game->level->cameras[i]->offset =
+        (Vector2){(float)screen_width * (i == 0 ? 1 : 3) / divisor,
+                  (float)screen_height / 2};
     game->level->cameras[i]->rotation = 0.0f;
     game->level->cameras[i]->zoom = 1.6f;
   }
@@ -202,10 +226,12 @@ void update_camera(Game *game) {
 }
 
 void draw_viewports(Rectangle *game_viewport, Game *game, Level *level) {
+  bool single_player_mode = game->playerCount == 1;
   for (size_t i = 0; i < game->playerCount; i++) {
+    float divisor = single_player_mode ? 1.0f : 2.0f;
     BeginScissorMode(
-        game_viewport->x + i * (game_viewport->width / 2) + (10 + i * 5),
-        game_viewport->y + 10, game_viewport->width / 2 - (25 - i * 5),
+        game_viewport->x + i * (game_viewport->width / divisor) + (10 + i * 5),
+        game_viewport->y + 10, game_viewport->width / divisor - (25 - i * 5),
         game_viewport->height - 20);
     BeginMode2D(*level->cameras[i]);
     render_level(level);
@@ -213,4 +239,10 @@ void draw_viewports(Rectangle *game_viewport, Game *game, Level *level) {
     EndMode2D();
     EndScissorMode();
   }
+  if (single_player_mode) {
+    return;
+  }
+  Rectangle ui_divider = (Rectangle){(float)GetScreenWidth() / 2 - 5, 40, 10.0f,
+                                     GetScreenHeight() - 40};
+  DrawRectangleRec(ui_divider, DARKGRAY);
 }
