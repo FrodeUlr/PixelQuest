@@ -1,9 +1,13 @@
 #include "player.h"
 #include "config.h"
 #include "constants.h"
+#include "external/raylib.h"
+#include "game.h"
 #include "level.h"
+#include "textures.h"
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 void generate_player(Player *player, char *name, PlayerType playerType, float x,
                      float y, Color color) {
@@ -19,6 +23,7 @@ void generate_player(Player *player, char *name, PlayerType playerType, float x,
   player->color = color;
   set_player_keys(player);
   set_player_texture(player);
+  set_animation_def(player);
   player->number = (playerType == PLAYER_ONE) ? '1' : '2';
 }
 
@@ -45,24 +50,39 @@ void set_player_texture(Player *player) {
                               get_absolute_path("../art/Player/Player.png"));
 }
 
+void set_animation_def(Player *player) {
+  player->animation.currentColumn = 0;
+  player->animation.texture =
+      LoadTexture(get_absolute_path("../art/Player/Player.png"));
+  player->animation.rows = 10;
+  player->animation.columns = 6;
+  player->animation.frameSize = (Vector2){
+      ((float)player->animation.texture.width / player->animation.columns),
+      ((float)player->animation.texture.height / player->animation.rows)};
+}
+
 void handle_axis_movement(int positive_key, int negative_key, float *velocity,
                           float *acceleration, float max_speed, float *new_pos,
                           float frame_time, bool *pos_key_pressed,
-                          bool *neg_key_pressed) {
+                          bool *neg_key_pressed, Player *player) {
   if (IsKeyDown(positive_key)) {
+    player->lastNegativeKey = KEY_NULL;
+    player->lastPositiveKey = positive_key;
     if (*velocity > 0)
       *new_pos += *velocity * frame_time;
     if (*velocity < max_speed && *acceleration > -0.1f) {
-      *acceleration += 0.1f;
+      *acceleration += 1.0f * frame_time;
       *velocity += *acceleration;
     }
     *pos_key_pressed = true;
   }
   if (IsKeyDown(negative_key)) {
+    player->lastPositiveKey = KEY_NULL;
+    player->lastNegativeKey = negative_key;
     if (*velocity < 0)
       *new_pos += *velocity * frame_time;
     if (*velocity > -max_speed && *acceleration < 0.1f) {
-      *acceleration -= 0.1f;
+      *acceleration -= 1.0f * frame_time;
       *velocity += *acceleration;
     }
     *neg_key_pressed = true;
@@ -78,7 +98,7 @@ void handle_axis_deceleration(bool pos_key_pressed, bool neg_key_pressed,
       *acceleration = 0.0f;
       *velocity = 0.0f;
     } else {
-      *acceleration -= 0.1f;
+      *acceleration -= 1.8f * frame_time;
       *velocity -= *acceleration;
       *new_pos += *velocity * frame_time;
     }
@@ -88,7 +108,7 @@ void handle_axis_deceleration(bool pos_key_pressed, bool neg_key_pressed,
       *acceleration = 0.0f;
       *velocity = 0.0f;
     } else {
-      *acceleration += 0.1f;
+      *acceleration += 1.8f * frame_time;
       *velocity -= *acceleration;
       *new_pos += *velocity * frame_time;
     }
@@ -109,12 +129,14 @@ void update_position(Player *players[], int playerCount, struct Level *level) {
     handle_axis_movement(
         players[i]->keys.right, players[i]->keys.left, &players[i]->velocity.x,
         &players[i]->accelerationVector.x, players[i]->maxSpeed, &new_x,
-        frame_time, &x_movement_key_pressed, &x_neg_movement_key_pressed);
+        frame_time, &x_movement_key_pressed, &x_neg_movement_key_pressed,
+        players[i]);
 
     handle_axis_movement(
         players[i]->keys.down, players[i]->keys.up, &players[i]->velocity.y,
         &players[i]->accelerationVector.y, players[i]->maxSpeed, &new_y,
-        frame_time, &y_movement_key_pressed, &y_neg_movement_key_pressed);
+        frame_time, &y_movement_key_pressed, &y_neg_movement_key_pressed,
+        players[i]);
 
     handle_axis_deceleration(x_movement_key_pressed, x_neg_movement_key_pressed,
                              &players[i]->velocity.x,
@@ -157,7 +179,7 @@ void update_position(Player *players[], int playerCount, struct Level *level) {
         !is_blocked(level->data[bottom_tile][right_tile])) {
       players[i]->position.x = new_x;
     } else {
-      players[i]->velocity.x *= 0.7f;
+      players[i]->velocity.x *= 0.7f * frame_time;
       players[i]->accelerationVector.x = 0.0f;
       if (players[i]->velocity.x < 1.0f && players[i]->velocity.x > -1.0f)
         players[i]->velocity.x = 0.0f;
@@ -192,7 +214,7 @@ void update_position(Player *players[], int playerCount, struct Level *level) {
         !is_blocked(level->data[bottom_tile][right_tile])) {
       players[i]->position.y = new_y;
     } else {
-      players[i]->velocity.y *= 0.7f;
+      players[i]->velocity.y *= 0.7f * frame_time;
       players[i]->accelerationVector.y = 0.0f;
       if (players[i]->velocity.y < 1.0f && players[i]->velocity.y > -1.0f)
         players[i]->velocity.y = 0.0f;
@@ -289,8 +311,8 @@ bool collides_with_level(float x, float y, float radius, Level *level) {
   return false;
 }
 
-void draw_player_texture(Level *level, TextureDef tdef, float x, float y,
-                         float customScale, Player *player, bool flip) {
+void draw_player_texture(Level *level, TextureDef tdef, float customScale,
+                         Player *player, bool flip) {
   float width = tdef.endX - tdef.startX;
   float height = tdef.endY - tdef.startY;
   float scale = level->tileSize / ((float)tdef.endX) * customScale;
@@ -298,58 +320,97 @@ void draw_player_texture(Level *level, TextureDef tdef, float x, float y,
   if (flip) {
     source.width = -(width); // Negative width flips horizontally
   }
-  Rectangle dest = {x - (width * scale) / 2, y - (height * scale) / 2,
-                    width * scale, height * scale};
+  Rectangle dest = {player->position.x - (width * scale) / 2,
+                    player->position.y - (height * scale) / 2, width * scale,
+                    height * scale};
   Vector2 origin = {0, 0};
   float rotation = 0.0f;
   DrawTexturePro(tdef.texture, source, dest, origin, rotation, player->color);
 }
 
-void draw_player_animation(Level *level, AnimationFrame *anim, float x, float y,
-                           float customScale, Player *player, bool flip) {
-  float scale = level->tileSize / ((float)anim->frameWidth) * customScale;
-  Rectangle source = anim->frameRect;
+void draw_player_animation(Level *level, float customScale, Player *player,
+                           bool flip, int row, int column) {
+  float scale =
+      level->tileSize / ((float)player->animation.frameSize.x) * customScale;
+  Rectangle source =
+      (Rectangle){.x = 0 + player->animation.frameSize.x * column,
+                  .y = 0 + player->animation.frameSize.y * row,
+                  .width = player->animation.frameSize.x,
+                  .height = player->animation.frameSize.y};
   if (flip) {
-    source.width = -(anim->frameWidth); // Negative width flips horizontally
+    source.width = -(player->animation.frameSize.x);
   }
-  Rectangle dest = {x - (anim->frameWidth * scale) / 2,
-                    y - (anim->frameHeight * scale) / 2,
-                    anim->frameWidth * scale, anim->frameHeight * scale};
+  Rectangle dest = {
+      player->position.x - (player->animation.frameSize.x * scale) / 2,
+      player->position.y - (player->animation.frameSize.y * scale) / 2,
+      player->animation.frameSize.x * scale,
+      player->animation.frameSize.y * scale};
   Vector2 origin = {0, 0};
   float rotation = 0.0f;
-  DrawTexturePro(anim->texture, source, dest, origin, rotation, player->color);
+  DrawTexturePro(player->animation.texture, source, dest, origin, rotation,
+                 player->color);
 }
 
-void render_players(Player *players[], size_t playerCount, Level *level) {
-  for (size_t i = 0; i < playerCount; i++) {
-    if (level->firstFrame) {
-      for (int y = 0; y < level->rows; y++) {
-        for (int x = 0; x < level->columns; x++) {
-          if (level->data[y][x] == players[i]->number) {
-            players[i]->position.x = x * level->tileSize + level->offsetX +
-                                     (float)level->tileSize / 2;
-            players[i]->position.y = y * level->tileSize + level->offsetY +
-                                     (float)level->tileSize / 2;
-            players[i]->radius = (float)level->tileSize / 3;
-            players[i]->startPosition = players[i]->position;
+void render_players(Game *game) {
+  for (size_t i = 0; i < game->playerCount; i++) {
+    if (game->level->firstFrame) {
+      for (int y = 0; y < game->level->rows; y++) {
+        for (int x = 0; x < game->level->columns; x++) {
+          if (game->level->data[y][x] == game->players[i]->number) {
+            game->players[i]->position.x = x * game->level->tileSize +
+                                           game->level->offsetX +
+                                           (float)game->level->tileSize / 2;
+            game->players[i]->position.y = y * game->level->tileSize +
+                                           game->level->offsetY +
+                                           (float)game->level->tileSize / 2;
+            game->players[i]->radius = (float)game->level->tileSize / 3;
+            game->players[i]->startPosition = game->players[i]->position;
             break;
           }
         }
       }
     }
-    float name_size = MeasureText(players[i]->name, 20);
-    float middle_x = players[i]->position.x - name_size / 2;
-    DrawText(players[i]->name, middle_x,
-             players[i]->position.y - players[i]->radius - 25, 20, WHITE);
-    if (players[i]->velocity.x > 0.1f) {
-      draw_player_texture(level, players[i]->run, players[i]->position.x,
-                          players[i]->position.y, 1.0f, players[i], false);
-    } else if (players[i]->velocity.x < -0.1f) {
-      draw_player_texture(level, players[i]->run, players[i]->position.x,
-                          players[i]->position.y, 1.0f, players[i], true);
-    } else
-      draw_player_texture(level, players[i]->idle, players[i]->position.x,
-                          players[i]->position.y, 1.0f, players[i], false);
+    float name_size = MeasureText(game->players[i]->name, 20);
+    float middle_x = game->players[i]->position.x - name_size / 2;
+    DrawText(game->players[i]->name, middle_x,
+             game->players[i]->position.y - game->players[i]->radius - 25, 20,
+             WHITE);
+    if (game->frameCounter % 50 == 0) {
+      if (game->players[i]->animation.currentColumn >=
+          game->players[i]->animation.columns - 1)
+        game->players[i]->animation.currentColumn = 0;
+      else
+        game->players[i]->animation.currentColumn++;
+    }
+    // Movement animations
+    if (game->players[i]->velocity.x > 0.1f) {
+      draw_player_animation(game->level, 1.4f, game->players[i], false, 4,
+                            game->players[i]->animation.currentColumn);
+    } else if (game->players[i]->velocity.x < -0.1f) {
+      draw_player_animation(game->level, 1.4f, game->players[i], true, 4,
+                            game->players[i]->animation.currentColumn);
+    } else if (game->players[i]->velocity.y > 0.1f) {
+      draw_player_animation(game->level, 1.4f, game->players[i], false, 3,
+                            game->players[i]->animation.currentColumn);
+    } else if (game->players[i]->velocity.y < -0.1f) {
+      draw_player_animation(game->level, 1.4f, game->players[i], false, 5,
+                            game->players[i]->animation.currentColumn);
+    } else { // Idle animations
+      if (game->players[i]->lastPositiveKey == game->players[i]->keys.right) {
+        draw_player_animation(game->level, 1.4f, game->players[i], false, 1,
+                              game->players[i]->animation.currentColumn);
+      } else if (game->players[i]->lastNegativeKey ==
+                 game->players[i]->keys.left) {
+        draw_player_animation(game->level, 1.4f, game->players[i], true, 1,
+                              game->players[i]->animation.currentColumn);
+      } else if (game->players[i]->lastNegativeKey ==
+                 game->players[i]->keys.up) {
+        draw_player_animation(game->level, 1.4f, game->players[i], false, 2,
+                              game->players[i]->animation.currentColumn);
+      } else
+        draw_player_animation(game->level, 1.4f, game->players[i], false, 0,
+                              game->players[i]->animation.currentColumn);
+    }
   }
 }
 

@@ -23,6 +23,14 @@ typedef struct AnimationFrame {
   Texture2D texture;
 } AnimationFrame;
 
+typedef struct SpriteDef {
+  int currentColumn;
+  int rows;
+  int columns;
+  Vector2 frameSize;
+  Texture2D texture;
+} SpriteDef;
+
 TextureDef SetTextureDef(const char *name, int startX, int endX, int startY,
                          int endY, char *texturePath);
 AnimationFrame SetAnimationFrame(Texture2D texture, int maxFramesW,

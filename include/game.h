@@ -13,6 +13,7 @@ typedef struct Game {
   size_t playerCount;
   bool firstPlayerSet;
   bool running;
+  int frameCounter;
 } Game;
 
 void start_game(Game *game, Config *config);

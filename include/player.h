@@ -6,6 +6,7 @@
 #include <stddef.h>
 
 struct Level;
+struct Game;
 
 typedef struct PlayerKey {
   KeyboardKey left;
@@ -29,8 +30,11 @@ typedef struct Player {
   float maxSpeed;
   float radius;
   char number;
+  KeyboardKey lastPositiveKey;
+  KeyboardKey lastNegativeKey;
   TextureDef idle;
   TextureDef run;
+  SpriteDef animation;
 } Player;
 
 void generate_player(Player *player, char *name, PlayerType playerType, float x,
@@ -40,7 +44,9 @@ void set_player_keys(Player *player);
 
 void set_player_texture(Player *player);
 
-void render_players(Player *players[], size_t playerCount, struct Level *level);
+void set_animation_def(Player *player);
+
+void render_players(struct Game *game);
 
 void update_position(Player *players[], int plaerCount, struct Level *level);
 

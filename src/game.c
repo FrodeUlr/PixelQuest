@@ -35,11 +35,15 @@ void start_game(Game *game, Config *config) {
     return;
   }
   new_menu(menu, 2);
-  int frame_counter = 0;
+  game->frameCounter = 0;
   Rectangle game_viewport =
       (Rectangle){0, 40, (float)screen_width, (float)screen_height - 40};
   while (game->running) {
-    frame_counter++;
+    if (game->frameCounter >= config->targetFPS * 60) {
+      game->frameCounter = 0;
+    } else {
+      game->frameCounter += 1;
+    }
     BeginDrawing();
     if (game->gameState == MAIN_MENU) {
       ClearBackground(RAYWHITE);
@@ -91,9 +95,6 @@ void start_game(Game *game, Config *config) {
       }
       if (level->cameras == NULL) {
         set_camera(game, screen_width, screen_height);
-      }
-      if (frame_counter % 60 == 0) {
-        frame_counter = 0;
       }
       update_camera(game);
       update_position(game->players, game->playerCount, level);
@@ -205,6 +206,7 @@ void free_game(Game *game) {
 
 void set_camera(Game *game, int screen_width, int screen_height) {
   game->level->cameras = malloc(sizeof(Camera2D *) * game->playerCount);
+  float screen_scale = GetScreenWidth() / 1920.0f;
   bool single_player_mode = game->playerCount == 1;
   for (size_t i = 0; i < game->playerCount; i++) {
     game->level->cameras[i] = malloc(sizeof(Camera2D));
@@ -215,7 +217,7 @@ void set_camera(Game *game, int screen_width, int screen_height) {
         (Vector2){(float)screen_width * (i == 0 ? 1 : 3) / divisor,
                   (float)screen_height / 2};
     game->level->cameras[i]->rotation = 0.0f;
-    game->level->cameras[i]->zoom = 1.6f;
+    game->level->cameras[i]->zoom = 1.6f / screen_scale;
   }
 }
 
@@ -236,7 +238,7 @@ void draw_viewports(Rectangle *game_viewport, Game *game, Level *level) {
         game_viewport->height - 20);
     BeginMode2D(*level->cameras[i]);
     render_level(level);
-    render_players(game->players, game->playerCount, level);
+    render_players(game);
     EndMode2D();
     EndScissorMode();
   }
