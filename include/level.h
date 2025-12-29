@@ -21,6 +21,7 @@ typedef struct Level {
   TextureDef targetTexture;
   TextureDef houseTexture;
   TextureDef waterTexture;
+  SpriteDef spritesheet;
   Camera2D **cameras;
 } Level;
 

@@ -93,9 +93,7 @@ void start_game(Game *game, Config *config) {
           game->gameState = GAME_OVER;
         }
       }
-      if (level->cameras == NULL) {
-        set_camera(game, screen_width, screen_height);
-      }
+      set_camera(game, screen_width, screen_height);
       update_camera(game);
       update_position(game->players, game->playerCount, level);
       players_collision(game->players, game->playerCount, level);

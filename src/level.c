@@ -2,6 +2,7 @@
 #include "config.h"
 #include "constants.h"
 #include "external/raylib.h"
+#include "textures.h"
 #include <linux/limits.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -52,6 +53,14 @@ void set_level(Level *level, int number) {
   level->waterTexture =
       SetTextureDef("Water_Tile", 0, 48, 0, 48,
                     get_absolute_path("../art/Tiles/Water_Middle.png"));
+  level->spritesheet.texture =
+      LoadTexture(get_absolute_path("../art/SpriteSheet.png"));
+  level->spritesheet.currentColumn = 0;
+  level->spritesheet.rows = 10;
+  level->spritesheet.columns = 10;
+  level->spritesheet.frameSize = (Vector2){
+      ((float)level->spritesheet.texture.width / level->spritesheet.columns),
+      ((float)level->spritesheet.texture.height / level->spritesheet.rows)};
   int height = 0;
   switch (number) {
   case 1: {
@@ -95,6 +104,33 @@ void DrawTextureForGame(Level *level, TextureDef tdef, int xDest, int yDest,
   DrawTexturePro(tdef.texture, source, dest, origin, rotation, WHITE);
 }
 
+void draw_level_texture(Level *level, float customScale, bool flip, int row,
+                        int column, Color color, int x, int y, float rotation) {
+  float scale =
+      level->tileSize / ((float)level->spritesheet.frameSize.x) * customScale;
+  Rectangle source =
+      (Rectangle){.x = 0 + level->spritesheet.frameSize.x * column,
+                  .y = 0 + level->spritesheet.frameSize.y * row,
+                  .width = level->spritesheet.frameSize.x,
+                  .height = level->spritesheet.frameSize.y};
+  if (flip) {
+    source.width = -(level->spritesheet.frameSize.x);
+  }
+  int offset_rot_x = rotation == 90.0f || rotation == 180.0f
+                         ? level->spritesheet.frameSize.x * scale
+                         : 0;
+  int offset_rot_y = rotation == 180.0f || rotation == 270.0f
+                         ? level->spritesheet.frameSize.y * scale
+                         : 0;
+  Rectangle dest = {x * level->tileSize + level->offsetX + offset_rot_x,
+                    y * level->tileSize + level->offsetY + offset_rot_y,
+                    level->spritesheet.frameSize.x * scale,
+                    level->spritesheet.frameSize.y * scale};
+  Vector2 origin = {0, 0};
+  DrawTexturePro(level->spritesheet.texture, source, dest, origin, rotation,
+                 color);
+}
+
 void render_level(Level *level) {
   TILE_TYPE tile_type;
   for (int y = 0; y < level->rows; y++) {
@@ -103,7 +139,7 @@ void render_level(Level *level) {
       Color color;
       switch (tile) {
       case '#':
-        color = DARKGRAY;
+        color = WHITE;
         tile_type = WALL;
         break;
       case '.':
@@ -137,7 +173,11 @@ void render_level(Level *level) {
         DrawTextureForGame(level, level->groundTexture, x, y, 1);
         DrawTextureForGame(level, level->targetTexture, x, y, 1);
       } else if (tile_type == WALL) {
-        DrawTextureForGame(level, level->wallTexture, x, y, 1);
+        DrawTextureForGame(level, level->groundTexture, x, y, 1);
+        float options[] = {0.0f, 90.0f, 180.0f, 270.0f};
+        int idx = (x + y) % 4;
+        float rotation = options[0];
+        draw_level_texture(level, 1.0f, false, 1, 1, color, x, y, rotation);
       } else if (tile_type == GROUND) {
         DrawTextureForGame(level, level->groundTexture, x, y, 1);
       } else if (tile_type == PLAYER) {

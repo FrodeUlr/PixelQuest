@@ -32,9 +32,7 @@ typedef struct Player {
   char number;
   KeyboardKey lastPositiveKey;
   KeyboardKey lastNegativeKey;
-  TextureDef idle;
-  TextureDef run;
-  SpriteDef animation;
+  SpriteDef spritesheet;
 } Player;
 
 void generate_player(Player *player, char *name, PlayerType playerType, float x,
@@ -44,7 +42,7 @@ void set_player_keys(Player *player);
 
 void set_player_texture(Player *player);
 
-void set_animation_def(Player *player);
+void set_sprite_def(Player *player);
 
 void render_players(struct Game *game);
 

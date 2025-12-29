@@ -1,6 +1,5 @@
 PROJECT_NAME = raylibtest
 
-BEAR            = bear --
 CC              = cc
 SRC             = src/*.c
 INCLUDES        = -I./include
@@ -19,15 +18,17 @@ build:
 		FOLDER=$(DEBUG_FOLDER); \
 		OUT=$(OUT_DEBUG); \
 		FLAGS="-g"; \
+		BEAR=""; \
 	else \
 		FOLDER=$(RELEASE_FOLDER); \
 		OUT=$(OUT_RELEASE); \
 		FLAGS=""; \
+		BEAR="bear --"; \
 	fi; \
 	mkdir -p $$FOLDER; \
 	cp -r art $$FOLDER/; \
 	cp -r levels $$FOLDER/; \
-	$(BEAR) $(CC) $$FLAGS -o $$OUT $(INCLUDES) $(SRC) $(LIBS)
+	$$BEAR $(CC) $$FLAGS -o $$OUT $(INCLUDES) $(SRC) $(LIBS)
 
 run:
 	@$(OUT_RELEASE)
