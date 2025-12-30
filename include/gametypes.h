@@ -2,7 +2,17 @@
 #define GAMETYPES_H
 
 typedef enum { MAIN_MENU, EXIT, LEVEL_ONE, LEVEL_TWO, GAME_OVER } GameState;
-typedef enum { WALL, TARGET, WATER, GROUND, HOUSE, PLAYER } TILE_TYPE;
+typedef enum {
+  WALL,
+  TARGET,
+  WATER,
+  GROUND,
+  HOUSE,
+  PLAYER,
+  TREE_TOP,
+  TREE_MID,
+  TREE_BOT
+} TILE_TYPE;
 typedef enum { PLAYER_ONE, PLAYER_TWO } PlayerType;
 typedef enum FocusField {
   PLAYER1_NAME,

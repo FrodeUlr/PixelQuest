@@ -132,63 +132,47 @@ void draw_level_texture(Level *level, float customScale, bool flip, int row,
 }
 
 void render_level(Level *level) {
-  TILE_TYPE tile_type;
+  float options[] = {0.0f, 90.0f, 180.0f, 270.0f};
   for (int y = 0; y < level->rows; y++) {
     for (int x = 0; x < level->columns; x++) {
+      int idx = (x + y) % 4;
+      float positional_rotation = options[idx];
       char tile = level->data[y][x];
-      Color color;
+      Color color = WHITE;
       switch (tile) {
-      case '#':
-        color = WHITE;
-        tile_type = WALL;
-        break;
+      case '1':
+      case '2':
       case '.':
-        color = LIGHTGRAY;
-        tile_type = GROUND;
+        draw_level_texture(level, 1.0f, false, 1, 0, color, x, y, 0.0f);
         break;
       case '@':
       case 'D':
-        color = BLUE;
-        tile_type = WATER;
+        DrawTextureForGame(level, level->waterTexture, x, y, 1);
         break;
       case 'O':
-        color = GREEN;
-        tile_type = TARGET;
+        draw_level_texture(level, 1.0f, false, 1, 0, color, x, y, 0.0f);
+        DrawTextureForGame(level, level->targetTexture, x, y, 1);
         break;
       case 'H':
-        color = YELLOW;
-        tile_type = HOUSE;
-        break;
-      case '1':
-      case '2':
-        color = RED;
-        tile_type = PLAYER;
-        break;
-      default:
-        color = BLACK;
-        tile_type = WALL;
-        break;
-      }
-      if (tile_type == TARGET) {
-        DrawTextureForGame(level, level->groundTexture, x, y, 1);
-        DrawTextureForGame(level, level->targetTexture, x, y, 1);
-      } else if (tile_type == WALL) {
-        DrawTextureForGame(level, level->groundTexture, x, y, 1);
-        float options[] = {0.0f, 90.0f, 180.0f, 270.0f};
-        int idx = (x + y) % 4;
-        float rotation = options[0];
-        draw_level_texture(level, 1.0f, false, 1, 1, color, x, y, rotation);
-      } else if (tile_type == GROUND) {
-        DrawTextureForGame(level, level->groundTexture, x, y, 1);
-      } else if (tile_type == PLAYER) {
-        DrawTextureForGame(level, level->groundTexture, x, y, 1);
-      } else if (tile_type == WATER) {
-        DrawTextureForGame(level, level->waterTexture, x, y, 1);
-      } else if (tile_type == HOUSE) {
-        DrawTextureForGame(level, level->groundTexture, x, y, 1);
+        draw_level_texture(level, 1.0f, false, 1, 0, color, x, y, 0.0f);
         DrawTextureForGame(level, level->houseTexture, x, y, 1);
-      } else {
-        DrawTextureForGame(level, level->groundTexture, x, y, 1);
+        break;
+      case 't':
+        draw_level_texture(level, 1.0f, false, 1, 0, color, x, y, 0.0f);
+        draw_level_texture(level, 1.0f, false, 4, 0, color, x, y, 0.0f);
+        break;
+      case 'm':
+        draw_level_texture(level, 1.0f, false, 1, 0, color, x, y, 0.0f);
+        draw_level_texture(level, 1.0f, false, 5, 0, color, x, y, 0.0f);
+        break;
+      case 'b':
+        draw_level_texture(level, 1.0f, false, 1, 0, color, x, y, 0.0f);
+        draw_level_texture(level, 1.0f, false, 6, 0, color, x, y, 0.0f);
+        break;
+      case '#':
+      default:
+        draw_level_texture(level, 1.0f, false, 1, 1, color, x, y, 0.0f);
+        break;
       }
     }
   }
