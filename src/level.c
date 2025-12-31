@@ -57,7 +57,6 @@ void set_offset(Level *level) {
 }
 
 void set_level(Level *level, int number) {
-  printf("in set_level with number: %d\n", number);
   const char **level_data = NULL;
   level->targetTexture =
       SetTextureDef("Target_Tile", 0, 16, 0, 16,

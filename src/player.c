@@ -86,11 +86,11 @@ void handle_axis_deceleration(bool pos_key_pressed, bool neg_key_pressed,
                               float min_speed, float *new_pos,
                               float frame_time) {
   if (!pos_key_pressed && *acceleration > 0) {
-    if (*velocity < min_speed) {
+    if (*velocity < min_speed + 20) {
       *acceleration = 0.0f;
       *velocity = 0.0f;
     } else {
-      *acceleration -= 1.8f * frame_time;
+      *acceleration -= (1.0f - (*acceleration * 3)) * frame_time;
       *velocity -= *acceleration;
       *new_pos += *velocity * frame_time;
     }
@@ -100,7 +100,7 @@ void handle_axis_deceleration(bool pos_key_pressed, bool neg_key_pressed,
       *acceleration = 0.0f;
       *velocity = 0.0f;
     } else {
-      *acceleration += 1.8f * frame_time;
+      *acceleration += (1.8f + (*acceleration * 3)) * frame_time;
       *velocity -= *acceleration;
       *new_pos += *velocity * frame_time;
     }
