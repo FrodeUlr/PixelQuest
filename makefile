@@ -9,7 +9,7 @@ DEBUG_FOLDER	  = ./bin/debug
 OUT_RELEASE     = $(RELEASE_FOLDER)/$(PROJECT_NAME)
 OUT_DEBUG       = $(DEBUG_FOLDER)/$(PROJECT_NAME)
 
-.PHONY: all build run clean
+.PHONY: all build run clean memcheck
 
 all: build run
 
@@ -35,3 +35,7 @@ run:
 
 clean:
 	@rm -rf bin
+
+memcheck:
+	make build MODE=debug
+	@valgrind --leak-check=full --track-origins=yes $(OUT_DEBUG)

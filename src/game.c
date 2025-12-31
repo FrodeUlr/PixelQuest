@@ -106,6 +106,7 @@ void start_game(Game *game, Config *config) {
     }
     EndDrawing();
   }
+  free_level(game->level);
   free_menu(menu);
   free_game(game);
   CloseWindow();
@@ -176,7 +177,7 @@ void initialize_players(Game *game, Menu *menu) {
   }
 }
 
-void free_game(Game *game) {
+void free_camera(Game *game) {
   for (size_t i = 0; i < game->playerCount; i++) {
     if (game->level->cameras != NULL && game->level->cameras[i] != NULL) {
       free(game->level->cameras[i]);
@@ -185,6 +186,10 @@ void free_game(Game *game) {
   if (game->level->cameras != NULL) {
     free(game->level->cameras);
   }
+}
+
+void free_game(Game *game) {
+  free_camera(game);
   for (size_t i = 0; i < game->playerCount; i++) {
     if (game->players[i] != NULL) {
       free(game->players[i]);
@@ -203,6 +208,7 @@ void free_game(Game *game) {
 }
 
 void set_camera(Game *game, int screen_width, int screen_height) {
+  free_camera(game);
   game->level->cameras = malloc(sizeof(Camera2D *) * game->playerCount);
   float screen_scale = GetScreenWidth() / 1920.0f;
   bool single_player_mode = game->playerCount == 1;

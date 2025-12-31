@@ -1,6 +1,6 @@
 # Notes
 
-## Rememer this
+## Remember this
 
 - Run:
 
@@ -9,3 +9,5 @@
   ```
 
   To make a compilation database for clangd.
+
+![image](./art/SpriteSheet.png)

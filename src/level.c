@@ -8,6 +8,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+void free_level(Level *level) {
+  if (level->data != NULL) {
+    for (int i = 0; i < level->rows; i++) {
+      free(level->data[i]);
+    }
+    free(level->data);
+  }
+}
+
 void load_level(Level *level, const char *filename) {
   char buffer[MAX_LEVEL_WIDTH];
 
@@ -16,6 +25,7 @@ void load_level(Level *level, const char *filename) {
     perror("Failed to open level file");
     return;
   }
+  free_level(level);
   level->rows = 0;
   level->data = malloc(sizeof(char *) * MAX_LEVEL_HEIGHT);
   while (fgets(buffer, sizeof(buffer), file)) {

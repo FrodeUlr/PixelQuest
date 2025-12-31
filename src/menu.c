@@ -182,4 +182,7 @@ void free_menu(Menu *menu) {
     }
     free(menu->buttons);
   }
+  if (menu != NULL) {
+    free(menu);
+  }
 }
