@@ -46,7 +46,8 @@ void set_sprite_def(Player *player);
 
 void render_players(struct Game *game);
 
-void update_position(Player *players[], int plaerCount, struct Level *level);
+void update_position(Player *players[], int plaerCount, struct Level *level,
+                     float fixed_dt);
 
 void reset_player_movement(Player *player);
 

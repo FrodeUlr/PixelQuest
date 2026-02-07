@@ -48,6 +48,8 @@ void start_game(Game *game, Config *config) {
   game->frameCounter = 0;
   Rectangle game_viewport =
       (Rectangle){0, 40, (float)screen_width, (float)screen_height - 40};
+  float accumulator = 0.0f;
+  const float fixed_dt = 1.0f / 60.0f;
   while (game->running) {
     if (game->frameCounter >= config->targetFPS * 60) {
       game->frameCounter = 0;
@@ -107,7 +109,13 @@ void start_game(Game *game, Config *config) {
       }
       set_camera(game, screen_width, screen_height);
       update_camera(game);
-      update_position(game->players, game->playerCount, game->level);
+      float frame_time = GetFrameTime();
+      accumulator += frame_time;
+      while (accumulator >= fixed_dt) {
+        update_position(game->players, game->playerCount, game->level,
+                        fixed_dt);
+        accumulator -= fixed_dt;
+      }
       players_collision(game->players, game->playerCount, game->level);
       draw_viewports(&game_viewport, game, game->level);
       draw_ui(game->players, game->playerCount, screen_width, screen_height);
@@ -147,6 +155,10 @@ void draw_ui(Player *players[], int playerCount, int screenWidth,
     int text_width = MeasureText(position_text, 20);
     DrawText(position_text, screenWidth / 2, i * 20, 20, WHITE);
     DrawText(player_speeds, (screenWidth / 2) + text_width, i * 20, 20, WHITE);
+    // Draw frametime bar
+    const char *frame_time_text =
+        TextFormat("Frame Time: %.2f ms", GetFrameTime() * 1000);
+    DrawText(frame_time_text, screenWidth / 2 - 250, 0, 20, WHITE);
   }
   EndScissorMode();
 }

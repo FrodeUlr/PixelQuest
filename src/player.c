@@ -56,14 +56,15 @@ void set_sprite_def(Player *player) {
 void handle_axis_movement(int positive_key, int negative_key, float *velocity,
                           float *acceleration, float max_speed, float *new_pos,
                           float frame_time, bool *pos_key_pressed,
-                          bool *neg_key_pressed, Player *player) {
+                          bool *neg_key_pressed, Player *player, int tile_size,
+                          int tile_default) {
   if (IsKeyDown(positive_key)) {
     player->lastNegativeKey = KEY_NULL;
     player->lastPositiveKey = positive_key;
     if (*velocity > 0)
-      *new_pos += *velocity * frame_time;
+      *new_pos += *velocity * frame_time * tile_size / tile_default;
     if (*velocity < max_speed && *acceleration > -0.1f) {
-      *acceleration += 1.0f * frame_time;
+      *acceleration += 1.0f * frame_time * tile_size / tile_default;
       *velocity += *acceleration;
     }
     *pos_key_pressed = true;
@@ -72,9 +73,9 @@ void handle_axis_movement(int positive_key, int negative_key, float *velocity,
     player->lastPositiveKey = KEY_NULL;
     player->lastNegativeKey = negative_key;
     if (*velocity < 0)
-      *new_pos += *velocity * frame_time;
+      *new_pos += *velocity * frame_time * tile_size / tile_default;
     if (*velocity > -max_speed && *acceleration < 0.1f) {
-      *acceleration -= 1.0f * frame_time;
+      *acceleration -= 1.0f * frame_time * tile_size / tile_default;
       *velocity += *acceleration;
     }
     *neg_key_pressed = true;
@@ -83,8 +84,8 @@ void handle_axis_movement(int positive_key, int negative_key, float *velocity,
 
 void handle_axis_deceleration(bool pos_key_pressed, bool neg_key_pressed,
                               float *velocity, float *acceleration,
-                              float min_speed, float *new_pos,
-                              float frame_time) {
+                              float min_speed, float *new_pos, float frame_time,
+                              int tile_size, int tile_default) {
   if (!pos_key_pressed && *acceleration > 0) {
     if (*velocity < min_speed + 20) {
       *acceleration = 0.0f;
@@ -92,7 +93,7 @@ void handle_axis_deceleration(bool pos_key_pressed, bool neg_key_pressed,
     } else {
       *acceleration -= (1.0f - (*acceleration * 3)) * frame_time;
       *velocity -= *acceleration;
-      *new_pos += *velocity * frame_time;
+      *new_pos += *velocity * frame_time * tile_size / tile_default;
     }
   }
   if (!neg_key_pressed && *acceleration < 0) {
@@ -102,17 +103,17 @@ void handle_axis_deceleration(bool pos_key_pressed, bool neg_key_pressed,
     } else {
       *acceleration += (1.8f + (*acceleration * 3)) * frame_time;
       *velocity -= *acceleration;
-      *new_pos += *velocity * frame_time;
+      *new_pos += *velocity * frame_time * tile_size / tile_default;
     }
   }
 }
 
-void update_position(Player *players[], int playerCount, struct Level *level) {
+void update_position(Player *players[], int playerCount, struct Level *level,
+                     float fixed_dt) {
   for (int i = 0; i < playerCount; i++) {
     float new_x = players[i]->position.x;
     float new_y = players[i]->position.y;
     float radius = players[i]->radius;
-    float frame_time = GetFrameTime();
     bool x_movement_key_pressed = false;
     bool x_neg_movement_key_pressed = false;
     bool y_movement_key_pressed = false;
@@ -121,24 +122,24 @@ void update_position(Player *players[], int playerCount, struct Level *level) {
     handle_axis_movement(
         players[i]->keys.right, players[i]->keys.left, &players[i]->velocity.x,
         &players[i]->accelerationVector.x, players[i]->maxSpeed, &new_x,
-        frame_time, &x_movement_key_pressed, &x_neg_movement_key_pressed,
-        players[i]);
+        fixed_dt, &x_movement_key_pressed, &x_neg_movement_key_pressed,
+        players[i], level->tileWidth, 30);
 
     handle_axis_movement(
         players[i]->keys.down, players[i]->keys.up, &players[i]->velocity.y,
         &players[i]->accelerationVector.y, players[i]->maxSpeed, &new_y,
-        frame_time, &y_movement_key_pressed, &y_neg_movement_key_pressed,
-        players[i]);
+        fixed_dt, &y_movement_key_pressed, &y_neg_movement_key_pressed,
+        players[i], level->tileHeight, 32);
 
     handle_axis_deceleration(x_movement_key_pressed, x_neg_movement_key_pressed,
                              &players[i]->velocity.x,
                              &players[i]->accelerationVector.x, 10.0f, &new_x,
-                             frame_time);
+                             fixed_dt, level->tileWidth, 30);
 
     handle_axis_deceleration(y_movement_key_pressed, y_neg_movement_key_pressed,
                              &players[i]->velocity.y,
                              &players[i]->accelerationVector.y, 10.0f, &new_y,
-                             frame_time);
+                             fixed_dt, level->tileHeight, 32);
 
     // Convert position to tile coordinates, accounting for scaling and offset
     int left_tile = (int)((new_x - radius - level->offsetX) / level->tileSize);
@@ -171,7 +172,7 @@ void update_position(Player *players[], int playerCount, struct Level *level) {
         !is_blocked(level->data[bottom_tile][right_tile])) {
       players[i]->position.x = new_x;
     } else {
-      players[i]->velocity.x *= 0.7f * frame_time;
+      players[i]->velocity.x *= 0.7f * fixed_dt;
       players[i]->accelerationVector.x = 0.0f;
       if (players[i]->velocity.x < 1.0f && players[i]->velocity.x > -1.0f)
         players[i]->velocity.x = 0.0f;
@@ -206,7 +207,7 @@ void update_position(Player *players[], int playerCount, struct Level *level) {
         !is_blocked(level->data[bottom_tile][right_tile])) {
       players[i]->position.y = new_y;
     } else {
-      players[i]->velocity.y *= 0.7f * frame_time;
+      players[i]->velocity.y *= 0.7f * fixed_dt;
       players[i]->accelerationVector.y = 0.0f;
       if (players[i]->velocity.y < 1.0f && players[i]->velocity.y > -1.0f)
         players[i]->velocity.y = 0.0f;
@@ -345,11 +346,14 @@ void render_players(Game *game) {
         }
       }
     }
-    float name_size = MeasureText(game->players[i]->name, 20);
+
+    int text_size = game->level->tileSize / 2;
+    float name_size = MeasureText(game->players[i]->name, text_size);
     float middle_x = game->players[i]->position.x - name_size / 2;
     DrawText(game->players[i]->name, middle_x,
-             game->players[i]->position.y - game->players[i]->radius - 25, 20,
-             WHITE);
+             game->players[i]->position.y - game->players[i]->radius -
+                 text_size - 10,
+             text_size, WHITE);
     if (game->frameCounter % 50 == 0) {
       if (game->players[i]->spritesheet.currentColumn >=
           game->players[i]->spritesheet.columns - 1)

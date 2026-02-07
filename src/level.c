@@ -48,7 +48,11 @@ void set_offset(Level *level) {
   int screen_height = GetScreenHeight();
   int tile_w = screen_width / level->columns;
   int tile_h = screen_height / level->rows;
+  printf("Calculated tile size: %d (tile_w: %d, tile_h: %d)\n",
+         tile_w < tile_h ? tile_w : tile_h, tile_w, tile_h);
   level->tileSize = tile_w < tile_h ? tile_w : tile_h;
+  level->tileWidth = tile_w;
+  level->tileHeight = tile_h;
 
   int level_pixel_width = level->tileSize * level->columns;
   int level_pixel_height = level->tileSize * level->rows;

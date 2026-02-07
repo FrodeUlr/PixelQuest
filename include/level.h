@@ -12,6 +12,8 @@ typedef struct Level {
   int offsetX;
   int offsetY;
   int tileSize;
+  int tileWidth;
+  int tileHeight;
   bool firstFrame;
   char **data;
   bool completed;
