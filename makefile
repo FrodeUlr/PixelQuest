@@ -16,9 +16,11 @@ OUT_DEBUG       = $(DEBUG_FOLDER)/$(PROJECT_NAME)
 ifeq ($(OS),Windows_NT)
   INCLUDES_OS=$(INCLUDES_WIN)
   LIBS=$(LIBS_WIN)
+	BEAR=""
 else
   INCLUDES_OS=$(INCLUDES_LINUX)
   LIBS=$(LIBS_LINUX)
+	BEAR="bear --"
 endif
 
 .PHONY: all build run clean memcheck windows
@@ -35,7 +37,7 @@ build:
 		FOLDER=$(RELEASE_FOLDER); \
 		OUT=$(OUT_RELEASE); \
 		FLAGS=""; \
-		BEAR="bear --"; \
+		BEAR=$(BEAR); \
 	fi; \
 	mkdir -p $$FOLDER; \
 	cp -r art $$FOLDER/; \
