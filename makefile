@@ -35,6 +35,9 @@ build:
 	$$BEAR $(CC) $$FLAGS -o $$OUT $(INCLUDES) $(INCLUDES_LINUX) $(SRC) $(LIBS_LINUX)
 
 windows:
+	mkdir $(RELEASE_FOLDER); \
+	cp -r art $(RELEASE_FOLDER)/; \
+	cp -r levels $(RELEASE_FOLDER)/; \
 	x86_64-w64-mingw32-gcc -o $(OUT_WIN) $(INCLUDES) $(INCLUDES_WIN) $(SRC) $(LIBS_WIN)
 
 run:
