@@ -1,6 +1,6 @@
 #ifndef MENU_H
 #define MENU_H
-#include "../include/game.h"
+#include "game.h"
 #include <stdbool.h>
 
 typedef struct {

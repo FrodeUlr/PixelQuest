@@ -1,11 +1,14 @@
 #include "game.h"
+#include "error.h"
 #include "level.h"
 #include "menu.h"
+#include "player_factory.h"
 #include "raylib.h"
 #include <stdio.h>
 #include <stdlib.h>
 
 void start_game(Game *game, Config *config) {
+  int err = 0;
   printf(
       "Starting game with resolution %dx%d, fullscreen: %d, target FPS: %d\n",
       config->screenWidth, config->screenHeight, config->fullscreen,
@@ -64,7 +67,8 @@ void start_game(Game *game, Config *config) {
         printf("Exiting game from main menu\n");
         game->running = false;
       } else if (game->gameState != MAIN_MENU) {
-        initialize_players(game, menu);
+        err = create_players(game, menu);
+        HANDLE_ERROR(game, err);
       } else {
         game->gameState = MAIN_MENU;
       }
@@ -107,7 +111,8 @@ void start_game(Game *game, Config *config) {
           game->gameState = GAME_OVER;
         }
       }
-      set_camera(game, screen_width, screen_height);
+      err = set_camera(game, screen_width, screen_height);
+      HANDLE_ERROR(game, err);
       update_camera(game);
       float frame_time = GetFrameTime();
       accumulator += frame_time;
@@ -163,52 +168,6 @@ void draw_ui(Player *players[], int playerCount, int screenWidth,
   EndScissorMode();
 }
 
-void initialize_players(Game *game, Menu *menu) {
-  if (game->players != NULL && game->playerCount > 0) {
-    for (size_t i = 0; i < game->playerCount; i++) {
-      if (game->players[i] != NULL) {
-        game->players[i] = NULL;
-      }
-      if (game->level->cameras != NULL && game->level->cameras[i] != NULL) {
-        free(game->level->cameras[i]);
-      }
-    }
-    free(game->players);
-    game->players = NULL;
-    free(game->level->cameras);
-    game->level->cameras = NULL;
-    game->playerCount = 0;
-    game->firstPlayerSet = false;
-  }
-  for (int i = 0; i < 2; i++) {
-    if (menu->players[i]->nameLen != 0) {
-      if (i == 0) {
-        game->firstPlayerSet = true;
-      }
-      game->playerCount += 1;
-    }
-  }
-  if (game->players == NULL) {
-    game->players = malloc(sizeof(Player *) * game->playerCount);
-    if (game->players == NULL) {
-      printf("Error allocating memory for players\n");
-      return;
-    }
-  }
-  for (int i = 0; i < game->playerCount; i++) {
-    printf("Generating player %d...\n", i + 1);
-    int ai = game->firstPlayerSet ? i : i + 1;
-    game->players[i] = malloc(sizeof(Player));
-    if (game->players[i] == NULL) {
-      printf("Error allocating memory for player %d\n", i + 1);
-      return;
-    }
-    generate_player(game->players[i], menu->players[ai]->name, ai,
-                    GetScreenWidth() * 0.9f, GetScreenHeight() * 0.7f,
-                    ai == 0 ? RAYWHITE : PINK);
-  }
-}
-
 void free_camera(Game *game) {
   for (size_t i = 0; i < game->playerCount; i++) {
     if (game->level->cameras != NULL && game->level->cameras[i] != NULL) {
@@ -242,12 +201,12 @@ void free_game(Game *game) {
   }
 }
 
-void set_camera(Game *game, int screen_width, int screen_height) {
+int set_camera(Game *game, int screen_width, int screen_height) {
   free_camera(game);
   game->level->cameras = malloc(sizeof(Camera2D *) * game->playerCount);
   if (game->level->cameras == NULL) {
     printf("Error allocating memory for cameras\n");
-    return;
+    return ERROR_ALLOC_CAMERA_ARRAY;
   }
   float screen_scale = GetScreenWidth() / 1920.0f;
   bool single_player_mode = game->playerCount == 1;
@@ -255,7 +214,7 @@ void set_camera(Game *game, int screen_width, int screen_height) {
     game->level->cameras[i] = malloc(sizeof(Camera2D));
     if (game->level->cameras[i] == NULL) {
       printf("Error allocating memory for camera %zu\n", i);
-      return;
+      return ERROR_ALLOC_CAMERA;
     }
     game->level->cameras[i]->target =
         (Vector2){game->players[i]->position.x, game->players[i]->position.y};
@@ -266,6 +225,7 @@ void set_camera(Game *game, int screen_width, int screen_height) {
     game->level->cameras[i]->rotation = 0.0f;
     game->level->cameras[i]->zoom = 1.6f / screen_scale;
   }
+  return 0;
 }
 
 void update_camera(Game *game) {
