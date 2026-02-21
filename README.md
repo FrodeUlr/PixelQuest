@@ -28,9 +28,24 @@ PixelQuest is a 2D game built with [raylib](https://www.raylib.com/), featuring 
 ### Build
 
 Supports building for linux and windows, makefile is setup to detect OS and build accordingly.
-Windows require MinGW to build
+Windows require MinGW's make to build, as the makefile uses bash syntax.
 
 ```sh
+make build
+```
+
+#### Windows C compiler tips
+
+Install [MSYS](https://www.msys2.org/), run `MSYS2 MSYS`
+
+```bash
+# gcc compiler
+pacman -S mingw-w64-ucrt-x86_64-gcc
+# make
+pacman -S make
+```
+
+```powershell
 make build
 ```
 
